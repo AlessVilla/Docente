@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Calificaciones</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        h2 { color: #1f4e78; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        input {
+            padding: 12px;
+            width: 80%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #1f4e78; }
+        button {
+            padding: 12px 24px;
+            background-color: #1f4e78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #153a5a; }
+        #resultado {
+            margin-top: 2rem;
+            text-align: left;
+            display: none;
+            border-top: 2px solid #eee;
+            padding-top: 1rem;
+        }
+        .dato { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .label { font-weight: bold; color: #555; }
+        .valor { color: #000; }
+        .error { color: #d9534f; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Consulta de Notas</h2>
+    <div class="input-group">
+        <input type="text" id="cedulaInput" placeholder="Ingrese su cédula">
+        <br>
+        <button onclick="consultar()">Consultar</button>
+    </div>
+
+    <div id="resultado">
+        <div class="dato"><span class="label">Estudiante:</span> <span id="resNombre" class="valor"></span></div>
+        <div class="dato"><span class="label">Nota Taller:</span> <span id="resTaller" class="valor"></span></div>
+        <div class="dato"><span class="label">Aciertos Quiz:</span> <span id="resAciertos" class="valor"></span></div>
+        <div class="dato"><span class="label">Nota Quiz:</span> <span id="resQuiz" class="valor"></span></div>
+        <div class="dato"><span class="label">Puntos Módulo:</span> <span id="resPuntos" class="valor"></span></div>
+        <div class="dato" style="font-size: 1.2rem; margin-top: 10px;">
+            <span class="label" style="color: #1f4e78;">NOTA FINAL:</span> 
+            <span id="resFinal" class="valor" style="font-weight: bold;"></span>
+        </div>
+    </div>
+    <div id="errorMsg" class="error" style="display: none;">Cédula no encontrada.</div>
+</div>
+
+<script>
+    const notas = {"1140855511": {"nombre": "ANTONIO LUIS NARVAEZ RODRIGUEZ", "taller": 95, "aciertos": 18, "quiz": 90, "puntos": 93, "final": 4.63}, "72003974": {"nombre": "CARLOS ALBERTO ANTEQUERA CABRERA", "taller": 92, "aciertos": 19, "quiz": 95, "puntos": 93, "final": 4.67}, "1129530613": {"nombre": "CARLOS EDUARDO HERRERA BARRIOS", "taller": 98, "aciertos": 19, "quiz": 95, "puntos": 96, "final": 4.82}, "1042422159": {"nombre": "CESAR LUIS VASQUEZ SUAREZ", "taller": 98, "aciertos": 20, "quiz": 100, "puntos": 99, "final": 4.95}, "1140844852": {"nombre": "JAIME ENRIQUE MONCADA DIAZ", "taller": 95, "aciertos": 19, "quiz": 95, "puntos": 95, "final": 4.76}, "1192782912": {"nombre": "JOCELYN KARINA RODRIGUEZ BUSTOS", "taller": 95, "aciertos": 19, "quiz": 95, "puntos": 95, "final": 4.76}, "1140856969": {"nombre": "LEANDRO ALEJANDRO NIEBLES CARBON\u00d3", "taller": 105, "aciertos": 20, "quiz": 100, "puntos": 100, "final": 5.0}, "55221621": {"nombre": "LILIANA ISABEL GONZALEZ SAUMETT", "taller": 95, "aciertos": 18, "quiz": 90, "puntos": 93, "final": 4.63}, "22520258": {"nombre": "MALENA CECILIA CASTRO CARO", "taller": 106, "aciertos": 19, "quiz": 95, "puntos": 100, "final": 5.0}, "72314057": {"nombre": "MARCO ANTONIO HERRERA BUELVAS", "taller": 92, "aciertos": 19, "quiz": 95, "puntos": 94, "final": 4.68}, "1002212266": {"nombre": "MARIA JOSE LEAL BROCHERO", "taller": 92, "aciertos": 19, "quiz": 95, "puntos": 94, "final": 4.68}, "32795843": {"nombre": "MARIANELLA HERRERA SALAZAR", "taller": 105, "aciertos": 19, "quiz": 95, "puntos": 100, "final": 5.0}, "1044432413": {"nombre": "MAURICIO JAVIER TORRES CALDERON", "taller": 92, "aciertos": 20, "quiz": 100, "puntos": 96, "final": 4.81}, "92528223": {"nombre": "VLADIMIR CUDRIS GUERRERO", "taller": 106, "aciertos": 19, "quiz": 95, "puntos": 100, "final": 5.0}, "1007117837": {"nombre": "WALTER ENERYQUER MONTA\u00d1O RAMIREZ", "taller": 67, "aciertos": 19, "quiz": 95, "puntos": 81, "final": 4.05}, "72053423": {"nombre": "WILMER JESIT MENDOZA DONADO", "taller": 95, "aciertos": 17, "quiz": 85, "puntos": 90, "final": 4.51}};
+
+    function consultar() {
+        const cedula = document.getElementById('cedulaInput').value.trim();
+        const resDiv = document.getElementById('resultado');
+        const errorDiv = document.getElementById('errorMsg');
+
+        if (notas[cedula]) {
+            const data = notas[cedula];
+            document.getElementById('resNombre').innerText = data.nombre;
+            document.getElementById('resTaller').innerText = data.taller;
+            document.getElementById('resAciertos').innerText = data.aciertos;
+            document.getElementById('resQuiz').innerText = data.quiz;
+            document.getElementById('resPuntos').innerText = data.puntos;
+            document.getElementById('resFinal').innerText = data.final;
+
+            resDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        } else {
+            resDiv.style.display = 'none';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
+    // Permitir Enter para buscar
+    document.getElementById('cedulaInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            consultar();
+        }
+    });
+</script>
+
+</body>
+</html>
