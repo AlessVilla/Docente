@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta notas "IA para Ejecutivos"</title>
+    <style>
+        body { 
+            font-family: Calibri, Arial, sans-serif; 
+            background-color: #ffffff; 
+            color: #000; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+        h1 { 
+            text-align: center; 
+            color: #000; 
+            margin-bottom: 20px; 
+            font-size: 24px;
+        }
+        .search-box { 
+            display: flex; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+        }
+        input[type="text"] { 
+            width: 300px; 
+            padding: 8px 12px; 
+            border: 1px solid #7f7f7f; 
+            font-size: 14px; 
+            outline: none; 
+            font-family: Calibri, Arial, sans-serif;
+        }
+        button { 
+            padding: 8px 16px; 
+            background-color: #f2f2f2; 
+            color: #000; 
+            border: 1px solid #7f7f7f; 
+            border-left: none;
+            font-size: 14px; 
+            cursor: pointer; 
+            font-family: Calibri, Arial, sans-serif;
+        }
+        button:hover { 
+            background-color: #e6e6e6; 
+        }
+        #error-msg { 
+            color: red; 
+            text-align: center; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            display: none; 
+        }
+        .result-section { 
+            display: none; 
+        }
+        .student-info { 
+            margin-bottom: 15px; 
+            font-size: 16px;
+        }
+        h3 { 
+            font-size: 16px; 
+            margin-top: 30px; 
+            margin-bottom: 10px;
+            color: #000;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            font-size: 14px; 
+        }
+        th, td { 
+            border: 1px solid #000000; 
+            padding: 4px 8px; 
+            text-align: center; 
+            vertical-align: middle;
+        }
+        th { 
+            background-color: #f2f2f2; 
+            font-weight: bold; 
+        }
+        
+        /* Excel Colors */
+        .bg-estrategias { background-color: #fce4d6; } 
+        .bg-forma { background-color: #e2efda; }       
+        .bg-estructura { background-color: #ddebf7; }  
+        .bg-razonamiento { background-color: #f2dcda; }
+        .bg-bono { background-color: #fff2cc; }        
+        .bg-penalizacion { background-color: #e4dfec; }
+        .bg-white { background-color: #ffffff; }
+        
+        .comments { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            border: 1px solid #000; 
+            margin-top: 10px; 
+            font-style: italic; 
+            line-height: 1.4; 
+        }
+        .summary-box {
+            border: 2px solid #000;
+            padding: 20px;
+            text-align: center;
+            width: 350px;
+            margin: 30px auto 0;
+            background-color: #f2f2f2;
+        }
+        .summary-box h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #000;
+        }
+        .summary-box .grade {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #000;
+        }
+        .summary-box .points {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consulta notas "IA para Ejecutivos"</h1>
+        <div class="search-box">
+            <input type="text" id="cedula" placeholder="Ingresa tu número de cédula..." autocomplete="off">
+            <button onclick="consultar()">Consultar</button>
+        </div>
+        <div id="error-msg">Cédula no encontrada. Por favor, verifica el número.</div>
+        
+        <div id="result" class="result-section">
+            <div class="student-info">
+                <strong>Estudiante:</strong> <span id="student-name"></span><br>
+                <strong>Cédula:</strong> <span id="student-id"></span>
+            </div>
+            
+            <h3>Taller 1 (30%)</h3>
+            <table id="t1-table">
+                <!-- T1 Content -->
+            </table>
+            <div class="comments" id="t1-comments"></div>
+
+            <h3>Taller 2 (70%)</h3>
+            <table id="t2-table">
+                <!-- T2 Content -->
+            </table>
+            
+            <div class="summary-box">
+                <h2>NOTA FINAL DEL MÓDULO</h2>
+                <div class="grade" id="final-grade"></div>
+                <div class="points" id="final-points"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const db = {
+            "1002210458": { "name": "ALEJANDRA PAOLA CALDERON BASTIDAS", "t1_g": "G2", "t2_g": "T2_G2" },
+            "1143258895": { "name": "ALFREDO MARROQUIN BURGOS", "t1_g": "G1", "t2_g": "T2_G1" },
+            "1234095829": { "name": "ANDREA CAROLINA MENCO GIL", "t1_g": "G5", "t2_g": "T2_G5" },
+            "1002127934": { "name": "ANGELY AMILETH ACOSTA RODRIGUEZ", "t1_g": "G5", "t2_g": "T2_G5" },
+            "72313646": { "name": "CARLOS ALBERTO DE LA HOZ FONTALVO", "t1_g": "G12", "t2_g": "T2_G6" },
+            "72252704": { "name": "DAWINS DAGOBERTO TAPIAS MIRANDA", "t1_g": "G1", "t2_g": "T2_G1" },
+            "92547357": { "name": "ERBIN DAVID LIDUEÑA AMAYA", "t1_g": "G6", "t2_g": "T2_G9" },
+            "1045685165": { "name": "FABIAN FLOREZ THERAN", "t1_g": "G1", "t2_g": "T2_G1" },
+            "1007920854": { "name": "GRACE PAOLA VILLARREAL ESPRIELLA", "t1_g": "G5", "t2_g": "T2_G5" },
+            "1140891081": { "name": "ISRAEL DAVID HAYA LAVERDE", "t1_g": "G4", "t2_g": "T2_G4" },
+            "1001876655": { "name": "JUAN JOSE OROZCO CEPEDA", "t1_g": "G11", "t2_g": "T2_G9" },
+            "57466600": { "name": "JULIA JUDITH GONZALEZ GARCIA", "t1_g": "G7", "t2_g": "T2_G7" },
+            "1045731786": { "name": "KATHERIN PAOLA MEJIA BONADIEZ", "t1_g": "G10", "t2_g": "T2_G10" },
+            "32889371": { "name": "LEDYS MILENA PEÑA ORTEGA", "t1_g": "G2", "t2_g": "T2_G2" },
+            "22589445": { "name": "LINETH ALICIA LOPEZ MARTINEZ", "t1_g": "G8", "t2_g": "T2_G8" },
+            "1129528640": { "name": "MANUEL JESUS MAESTRE MARTINEZ", "t1_g": "G3", "t2_g": "T2_G3" },
+            "72269425": { "name": "RICARDO ALBERTO MEJIA MUÑOZ", "t1_g": "G8", "t2_g": "T2_G8" },
+            "32869847": { "name": "RINA PATRICIA DE LA CERDA RODRIGUEZ", "t1_g": "G2", "t2_g": "T2_G2" },
+            "1042428891": { "name": "ROSA ISABEL PEREZ SOTO", "t1_g": "G10", "t2_g": "T2_G10" },
+            "1143123844": { "name": "SANDRA PATRICIA JIMENEZ LORDUY", "t1_g": "G3", "t2_g": "T2_G3" },
+            "1001879385": { "name": "SARAY JIRHF DIAZ LOPEZ", "t1_g": "G9", "t2_g": "T2_G9" },
+            "1140845736": { "name": "SUSADRY VALENCIA ZULUAGA", "t1_g": "G8", "t2_g": "T2_G8" },
+            "1042437470": { "name": "YANINA PAOLA VARGAS DE ALBA", "t1_g": "G3", "t2_g": "T2_G3" },
+            "1045668779": { "name": "YOSSI ESTEBAN CELIS SALCEDO", "t1_g": "G4", "t2_g": "T2_G4" }
+        };
+
+        const t1_data = {
+            "G1": { "grades": [5,5,5,5, 5,5,4.5, 5,5,5,5,5,5,5, 5,5], "bono": 0.5, "pen": "", "final": 5.47 },
+            "G2": { "grades": [5,5,5,4.5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": 0.5, "pen": "", "final": 5.48 },
+            "G3": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": 0.5, "pen": "", "final": 5.50 },
+            "G4": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": 0.5, "pen": "", "final": 5.50 },
+            "G5": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 5.00 },
+            "G6": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 5.00 },
+            "G7": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 5.00 },
+            "G8": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 5.00 },
+            "G9": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 5.00 },
+            "G10": { "grades": [5,5,5,4, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": "", "final": 4.95 },
+            "G11": { "grades": [5,5,5,5, 5,5,5, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": 1, "final": 4.00 },
+            "G12": { "grades": [5,5,5,5, 5,5,3, 5,5,5,5,5,5,5, 5,5], "bono": "", "pen": 1.5, "final": 3.37 }
+        };
+
+        const t1_comments = {
+            "G1": "Excelente aplicación de la estructura maestro. Lograron integrar el rol, contexto, insumos financieros ($25 vs $180) y la petición de forma fluida y profesional.<br><br>Aplicaron de manera sobresaliente el sesgo de confirmación y la urgencia en el Bloque 2. La transición entre la objetividad del Bloque 1 y la presión impuesta en el Bloque 2 es muy clara.<br><br>El uso de mayúsculas y puntuación es consistente con la teoría enseñada. El espaciado es correcto, aunque podrían haber acentuado aún más la separación visual para diferenciar bloques lógicos en el reporte final.<br><br>Su análisis crítico es de nivel ejecutivo. La distinción entre 'optimización de valor' y 'supervivencia de caja' demuestra que entendieron perfectamente cómo la IA reacciona ante las restricciones del usuario.",
+            "G2": "El prompt está impecablemente construido. Siguieron al pie de la letra los 4 pasos, logrando que la IA comprendiera no solo el problema técnico, sino la restricción presupuestaria de manera clara.<br><br>Muy bien integradas las estrategias. El uso de sentimientos y urgencia fue natural. En cuanto a sesgos, la ejecución fue buena, aunque podrían haber sido aún más incisivas en la dirección del sesgo para testear los límites de la IA.<br><br>El uso de elementos de forma fue perfecto. La puntuación y el uso de saltos de línea para diferenciar instrucciones facilitaron enormemente que la IA no mezclara los conceptos de presupuesto y umbral.<br><br>Su reflexión sobre la ética es sobresaliente. Entendieron perfectamente que la IA no debe desplazar el criterio humano, especialmente cuando la manipulación mediante prompts puede sesgar decisiones de alto impacto financiero.",
+            "G3": "Uso impecable de la estructura Maestro. Lograron integrar los datos financieros de manera muy natural en el cuerpo del prompt, permitiendo que la IA hiciera un cálculo preciso de la relación costo-beneficio.<br><br>Aplicación brillante. El uso de la presión por el recorte presupuestario ('carácter de urgencia') fue integrado sin romper el hilo conductor del prompt, logrando ver cómo la IA cambió drásticamente su recomendación inicial.<br><br>Manejo perfecto de la jerarquía visual mediante el uso de espaciados y puntuación. La lectura del prompt es fluida, lo que reduce la carga cognitiva para el modelo y mejora la calidad de la respuesta.<br><br>El análisis crítico es de alto nivel. Identificaron correctamente que el riesgo financiero no es solo el gasto inmediato, sino la destrucción de valor a largo plazo por 'miopía presupuestal'.",
+            "G4": "Excelente uso de la estructura. El prompt contiene todos los insumos necesarios para que la IA actúe como un consultor financiero de alto nivel. La distinción entre roles y objetivos es clarísima.<br><br>Aplicación brillante. Entendieron perfectamente que cambiar la estructura de la instrucción (pasar de pedir una recomendación a 'justificar' una opción específica) es el método más efectivo para sesgar a la IA.<br><br>El uso de elementos de forma es totalmente consistente con lo visto en clase. La jerarquía visual ayuda a que el modelo procese las restricciones financieras antes de emitir la recomendación.<br><br>Su análisis del Bloque 3 es excepcional. Identificaron de forma muy madura cómo el uso de sesgos de confirmación puede crear un 'eco' de malas decisiones, lo cual es un riesgo crítico en cualquier entorno corporativo real.",
+            "G5": "El prompt está muy bien articulado. La estructura Maestro fue respetada con precisión, logrando que la IA pudiera separar claramente el contexto financiero de la instrucción operativa.<br><br>Excelente aplicación de la teoría. Lograron demostrar cómo la 'urgencia' y el 'sesgo de confirmación' pueden alterar la neutralidad de la IA, convirtiéndola en un aliado de una postura predeterminada.<br><br>El uso de la forma es impecable. Los bloques lógicos están bien separados mediante espaciado, lo cual es fundamental para que el modelo de lenguaje mantenga la coherencia en sus recomendaciones.<br><br>Muy buena capacidad analítica. Su conclusión sobre que 'la IA debe usarse como apoyo y no como mecanismo de validación de decisiones ya tomadas' es el punto clave para cualquier directivo que quiera usar estas herramientas con ética y rigor profesional.",
+            "G6": "Uso muy preciso de la estructura Maestro. Identificó correctamente los insumos financieros necesarios para que la IA pudiera realizar el balance entre costo de retención y valor de vida del cliente.<br><br>Aplicación muy efectiva. Logró que la IA pasara de una posición analítica a una posición de 'seguimiento de órdenes' al ajustar el tono del prompt, demostrando cómo la complacencia de los modelos altera el resultado.<br><br>Excelente manejo de la jerarquía visual. El uso de espaciado y la claridad en las instrucciones permitieron que la IA ejecutara los dos bloques de trabajo sin perder el contexto del caso.<br><br>Análisis muy maduro. Destaco especialmente su reflexión sobre el 'principio de alineación y complacencia', que es un concepto técnico avanzado para entender por qué la IA a veces nos da la razón en lugar de la verdad.",
+            "G7": "Prompt muy bien estructurado. La definición del rol de 'asesor experto' y la inclusión de los datos financieros facilitaron que la IA entregara un análisis costo-beneficio preciso y bien argumentado.<br><br>Excelente aplicación de la teoría. Logró evidenciar cómo la instrucción de 'proteger el flujo de caja' como prioridad absoluta condiciona a la IA a ignorar otros indicadores estratégicos, demostrando el impacto de los sesgos.<br><br>El uso de la forma es impecable. Los bloques están claramente diferenciados, lo cual es fundamental para que la IA no pierda el contexto del caso entre el Bloque 1 y el Bloque 2.<br><br>Muy buen análisis crítico. Destaco su conclusión sobre cómo el sesgo de confirmación 'manipula' la respuesta de la IA. Entendió perfectamente que, al manipular la pregunta, se pierde la oportunidad de utilizar la IA como una herramienta analítica imparcial.",
+            "G8": "Uso excelente de la estructura maestro. El prompt integra con mucha claridad el rol del directivo y la problemática financiera, permitiendo que la IA mantenga el foco en la rentabilidad durante la recomendación.<br><br>Aplicación efectiva. Lograron inyectar el sentimiento de 'desesperación' y la urgencia de manera directa en el prompt, lo cual alteró notablemente la predisposición de la IA para proponer medidas de ahorro drásticas.<br><br>Excelente manejo de la jerarquía. El uso de mayúsculas para enfatizar la urgencia y los puntos de lista para las opciones de umbral permitieron una lectura limpia y estructurada para el modelo.<br><br>El análisis crítico es muy acertado. La reflexión sobre cómo la IA tiende a 'alinearse' con el tono emocional del usuario (en este caso, la urgencia) es fundamental para evitar la manipulación involuntaria de los resultados analíticos.",
+            "G9": "Excelente apropiación de la estructura Maestro. El desglose de la información técnica del negocio y las variables financieras ($25 USD vs $180 USD) fue planteado de forma nítida, logrando que el modelo operara eficientemente.<br><br>Aplicación impecable de las estrategias de influencia en el Bloque 2. Quedó plenamente demostrado cómo el énfasis en la crisis de liquidez condiciona las capacidades analíticas de la IA, moviéndola de un umbral neutral (50%) a uno condicionado (75%).<br><br>Excelente manejo formal y visual. La segmentación limpia del prompt a través de espaciados adecuados y la correcta entonación lingüística previnieron la mezcla de conceptos dentro del procesamiento de la IA.<br><br>Nivel de debate y análisis muy alto. El desarrollo argumentativo sobre cómo los sesgos de confirmación pueden llegar a actuar como un 'sello de aprobación artificial' para malas políticas corporativas es de gran madurez ejecutiva.",
+            "G10": "Excelente manejo de las variables del entorno (competidor y costos) e inyección de urgencia en la iteración; falto forzar un sesgo de confirmación aún más agresivo para desafiar la neutralidad del modelo.<br><br>Estructura visual impecable. El uso de viñetas, la puntuación y el lenguaje técnico-gerencial permitieron que el modelo procesara los datos financieros sin ninguna ambigüedad.<br><br>Cumple con todos los parámetros del rol, contexto y restricciones. Destaco la habilidad para guiar la interacción hasta obtener una respuesta avanzada de segmentación híbrida y el costo neto total.<br><br>Reflexión crítica sobresaliente. Identifican con madurez que la IA no tiene emociones pero se alinea a la narrativa, y exponen con claridad el peligro ético de usarla solo para validar decisiones pre-tomadas.",
+            "G11": "Entregó varios días tarde. Maneja a la perfección la influencia emocional (preocupación por la liquidez) y externa, demostrando cómo estas alteraron la decisión final de la IA.<br><br>Organización visual perfecta; el uso de viñetas y espaciados segmenta de forma impecable el rol, el contexto y los datos financieros.<br><br>Cumple con rigor todos los componentes esenciales y delimita con éxito una petición que exige justificar bajo criterios de riesgo y rentabilidad.<br><br>Su reflexión ética es muy madura, advirtiendo con acierto el peligro de transformar la IA en un mero 'mecanismo de justificación' de decisiones previas.",
+            "G12": "Entregó varios días tarde. Logra inyectar urgencia y agentes externos con éxito, y su debate gerencial mapea de forma brillante cómo el prompt forzó a la IA hacia opciones cerradas.<br><br>Adopta muy bien el rol y la entonación, aunque los prompts habrían ganado claridad visual utilizando dobles espaciados para aislar las restricciones del Comité.<br><br>Sigue el orden lógico al pie de la letra: define el rol corporativo, provee los insumos financieros clave y exige el método técnico de resolución.<br><br>Su análisis crítico es profundo; contrasta con lucidez las limitaciones lógicas de la IA frente al valor del conocimiento tácito y ético humano."
+        };
+
+        const t2_data = {
+            "T2_G1": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G2": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G3": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G4": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G5": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G6": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G7": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G8": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G9": { "grades": [5,5,5,5], "bono": 0.5, "final": 5.50 },
+            "T2_G10": { "grades": [5,5,5,""], "bono": 0.5, "final": 4.50 }
+        };
+
+        const t1_labels = [
+            { "macro": "ESTRATEGIAS (20%)", "color": "bg-estrategias", "criterios": ["URGENCIA", "EXTERNOS", "SENTIMIENTO", "SESGOS"] },
+            { "macro": "FORMA (20%)", "color": "bg-forma", "criterios": ["SIGNOS DE PUNTUACIÓN", "ENTONACIÓN", "ESPACIADOS"] },
+            { "macro": "ESTRUCTURA (45%)", "color": "bg-estructura", "criterios": ["QUIEN SOY/ERES", "CONTEXTO / INSUMOS", "PETICIÓN", "MÉTODO", "ADICIONAL", "FORMATO", "RITMO"] },
+            { "macro": "RAZONAMIENTO (15%)", "color": "bg-razonamiento", "criterios": ["COMPARACIÓN", "ÉTICA"] }
+        ];
+
+        const t2_labels = [
+            { "crit": "ARQUITECTURA Y FLUJO", "pct": "30%", "color": "bg-estrategias" },
+            { "crit": "TRATAMIENTO DATOS", "pct": "20%", "color": "bg-estructura" },
+            { "crit": "INGENIERÍA PROMPTS", "pct": "30%", "color": "bg-forma" },
+            { "crit": "ENTREGA DE ARCHIVOS", "pct": "20%", "color": "bg-razonamiento" }
+        ];
+
+        function consultar() {
+            const cedula = document.getElementById('cedula').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            const resultDiv = document.getElementById('result');
+            
+            if (!db[cedula]) {
+                errorMsg.style.display = 'block';
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            errorMsg.style.display = 'none';
+            resultDiv.style.display = 'block';
+            
+            const student = db[cedula];
+            document.getElementById('student-name').innerText = student.name;
+            document.getElementById('student-id').innerText = cedula;
+            
+            // Render Taller 1 Table
+            const d1 = t1_data[student.t1_g];
+            let t1HTML = `<tr><th>MACRO CRITERIO</th><th>CRITERIO</th><th>NOTA</th></tr>`;
+            let gIdx = 0;
+            
+            t1_labels.forEach(macroGroup => {
+                macroGroup.criterios.forEach((crit, i) => {
+                    t1HTML += `<tr class="${macroGroup.color}">`;
+                    if (i === 0) {
+                        t1HTML += `<td rowspan="${macroGroup.criterios.length}">${macroGroup.macro}</td>`;
+                    }
+                    t1HTML += `<td>${crit}</td><td class="bg-white">${d1.grades[gIdx]}</td></tr>`;
+                    gIdx++;
+                });
+            });
+            
+            t1HTML += `<tr class="bg-bono"><td colspan="2">BONO</td><td class="bg-white">${d1.bono}</td></tr>`;
+            t1HTML += `<tr class="bg-penalizacion"><td colspan="2">PENALIZACIÓN</td><td class="bg-white">${d1.pen}</td></tr>`;
+            let final1Val = typeof d1.final === 'number' ? d1.final.toFixed(2) : d1.final;
+            t1HTML += `<tr><td colspan="2" style="background-color:#ffffff; font-weight:bold;">NOTA FINAL</td><td class="bg-white" style="font-weight:bold;">${final1Val}</td></tr>`;
+            
+            document.getElementById('t1-table').innerHTML = t1HTML;
+            document.getElementById('t1-comments').innerHTML = `<strong>COMENTARIOS DEL EVALUADOR:</strong><br><br>${t1_comments[student.t1_g]}`;
+            
+            // Render Taller 2 Table
+            const d2 = t2_data[student.t2_g];
+            let t2HTML = `<tr><th>PORCENTAJE</th><th>CRITERIO</th><th>NOTA</th></tr>`;
+            t2_labels.forEach((row, i) => {
+                t2HTML += `<tr class="${row.color}">
+                    <td>${row.pct}</td>
+                    <td>${row.crit}</td>
+                    <td class="bg-white">${d2.grades[i]}</td>
+                </tr>`;
+            });
+            t2HTML += `<tr class="bg-bono"><td colspan="2">BONO</td><td class="bg-white">${d2.bono}</td></tr>`;
+            t2HTML += `<tr class="bg-penalizacion"><td colspan="2">PENALIZACIÓN</td><td class="bg-white"></td></tr>`;
+            let final2Val = typeof d2.final === 'number' ? d2.final.toFixed(2) : d2.final;
+            t2HTML += `<tr><td colspan="2" style="background-color:#ffffff; font-weight:bold;">NOTA FINAL</td><td class="bg-white" style="font-weight:bold;">${final2Val}</td></tr>`;
+            
+            document.getElementById('t2-table').innerHTML = t2HTML;
+            
+            // Final Grade Calculation
+            const nf1 = parseFloat(d1.final);
+            const nf2 = parseFloat(d2.final);
+            const consolidada = (nf1 * 0.3) + (nf2 * 0.7);
+            document.getElementById('final-grade').innerText = consolidada.toFixed(2);
+            
+            // Points calculation (cap at 100, round to nearest integer)
+            let rawPoints = (consolidada / 5.00) * 100;
+            let finalPoints = Math.round(Math.min(rawPoints, 100));
+            document.getElementById('final-points').innerText = `${finalPoints} / 100 Puntos`;
+        }
+    </script>
+</body>
+</html>
