@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta notas "BIG DATA I"</title>
+    <style>
+        body { 
+            font-family: Calibri, Arial, sans-serif; 
+            background-color: #ffffff; 
+            color: #000; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+        h1 { 
+            text-align: center; 
+            color: #000; 
+            margin-bottom: 20px; 
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .search-box { 
+            display: flex; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+        }
+        input[type="text"] { 
+            width: 300px; 
+            padding: 8px 12px; 
+            border: 1px solid #7f7f7f; 
+            font-size: 14px; 
+            outline: none; 
+            font-family: Calibri, Arial, sans-serif;
+        }
+        button { 
+            padding: 8px 16px; 
+            background-color: #f2f2f2; 
+            color: #000; 
+            border: 1px solid #7f7f7f; 
+            border-left: none;
+            font-size: 14px; 
+            cursor: pointer; 
+            font-family: Calibri, Arial, sans-serif;
+        }
+        button:hover { 
+            background-color: #e6e6e6; 
+        }
+        #error-msg { 
+            color: red; 
+            text-align: center; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            display: none; 
+        }
+        .result-section { 
+            display: none; 
+        }
+        .student-info { 
+            margin-bottom: 15px; 
+            font-size: 16px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+        h3 { 
+            font-size: 16px; 
+            margin-top: 30px; 
+            margin-bottom: 10px;
+            color: #000;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            font-weight: bold;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            font-size: 14px; 
+        }
+        th, td { 
+            border: 1px solid #000000; 
+            padding: 8px; 
+            text-align: center; 
+            vertical-align: middle;
+        }
+        th { 
+            background-color: #f2f2f2; 
+            font-weight: bold; 
+        }
+        
+        /* Colores Excel */
+        .bg-estrategias { background-color: #fce4d6; } 
+        .bg-forma { background-color: #e2efda; }       
+        .bg-estructura { background-color: #ddebf7; }  
+        .bg-razonamiento { background-color: #f2dcda; }
+        .bg-bono { background-color: #fff2cc; }        
+        .bg-white { background-color: #ffffff; }
+        .bg-total { background-color: #e8e8e8; font-weight: bold; }
+        
+        .comments { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            border: 1px solid #000; 
+            margin-top: 10px; 
+            font-style: italic; 
+            line-height: 1.4; 
+            text-align: left;
+        }
+        .summary-box {
+            border: 2px solid #000;
+            padding: 20px;
+            text-align: center;
+            width: 350px;
+            margin: 30px auto 0;
+            background-color: #f2f2f2;
+        }
+        .summary-box h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #000;
+            font-weight: bold;
+        }
+        .summary-box .grade {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #000;
+        }
+        .summary-box .points {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .highlight-bonus {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consulta notas "Ciencia de datos estratégica"</h1>
+        <div class="search-box">
+            <input type="text" id="cedula" placeholder="Ingresa tu número de cédula..." autocomplete="off">
+            <button onclick="consultar()">Consultar</button>
+        </div>
+        <div id="error-msg">Cédula no encontrada. Por favor, verifica el número.</div>
+        
+        <div id="result" class="result-section">
+            <div class="student-info">
+                <strong>Estudiantes del grupo:</strong> <span id="student-name"></span><br>
+                <strong>Cédula consultada:</strong> <span id="student-id"></span><br>
+                <strong>Hora de entrega:</strong> <span id="student-timestamp"></span>
+            </div>
+            
+            <h3>Componente de datos (Excel)</h3>
+            <table id="excel-table">
+                <!-- Contenido Excel -->
+            </table>
+            <div class="comments" id="excel-comments"></div>
+
+            <h3>Componente visual (Power BI)</h3>
+            <table id="pbi-table">
+                <!-- Contenido PBI -->
+            </table>
+            <div class="comments" id="pbi-comments"></div>
+            
+            <div class="summary-box">
+                <h2>Nota final del módulo</h2>
+                <div class="grade" id="final-grade"></div>
+                <div class="points" id="final-points"></div>
+                <div style="margin-top: 15px; font-size: 14px;">Bono por entrega temprana: <span id="bono-val" class="highlight-bonus"></span></div>
+                <div style="margin-top: 5px; font-size: 14px;">Bono por exposición: <span id="bono-expo-val" class="highlight-bonus"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const db = {"1046271230": {"nombre": "Adriana Avila Ruiz", "cedula": "1046271230", "marca": "7/19/2026 20:35:10", "saneamiento": "20", "modelo": "35", "com_excel": "Calculó los factores estacionales con suma de suma y no con promedio de sumas, del resto excelente proceso para calcular el pronóstico.", "comercial": "12", "rendimiento": "13", "com_pbi": "La hoja comercial carece de gráficos y análisis y la hoja rendimiento no contiene ningún tipo de filtro, solo un gráfico lineal con ejes no ubicados apropiadamente.", "bono": "-", "bono_expo": 0.0, "puntos": "80", "nota_original": "4", "nota": 4.0, "group_key": "7/19/2026 20:35:10_20_35_12_13", "grupo": "Adriana Avila Ruiz"}, "1143145561": {"nombre": "Albert Orozco Montes", "cedula": "1143145561", "marca": "7/18/2026 23:14:14", "saneamiento": "14", "modelo": "17", "com_excel": "Hicieron el modelo de pronóstico con las ventas, y debían pronosticas las unidades.", "comercial": "25", "rendimiento": "25", "com_pbi": "El uso de DAX y medidas fue estupendo, los felicito en este aspecto y con el dashboard que hicieron, quedaría aún mejor con un eje X de todos los meses individuales y no acumulados por año.", "bono": "0.5", "bono_expo": 0.0, "puntos": "91", "nota_original": "4.55", "nota": 4.55, "group_key": "7/18/2026 23:14:14_14_17_25_25", "grupo": "Albert Orozco Montes y Katia Barrios Manrique y Keidy Cabrales Cuadro"}, "1042244890": {"nombre": "Alvaro Javier Quintero Zabala", "cedula": "1042244890", "marca": "7/18/2026 22:06:06", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "25", "rendimiento": "20", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "0.5", "bono_expo": 0.3, "puntos": "109", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 22:06:06_14_40_25_20", "grupo": "Alvaro Javier Quintero Zabala y Gabriela Alexandra Tolosa Sierra"}, "1082858572": {"nombre": "Angelica Matos Garay", "cedula": "1082858572", "marca": "7/21/2026 1:08:14", "saneamiento": "19", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "15", "rendimiento": "15", "com_pbi": "En la hoja comercial hicieron falta gráficos para apoyar los análisis, en la de rendimiento se incluyó solo el histórico (hasta 2026-06) y no el pronóstico que es el objetivo final, buen uso general de colorimetría y de espaciados.", "bono": "-", "bono_expo": 0.0, "puntos": "89", "nota_original": "4.45", "nota": 4.45, "group_key": "7/21/2026 1:08:14_19_40_15_15", "grupo": "Angelica Matos Garay y Wendy Escobar Contreras"}, "1143460263": {"nombre": "Brayan Meza", "cedula": "1143460263", "marca": "7/19/2026 15:57:30", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "15", "com_pbi": "En concepto, la tendencia para comparar pronóstico con valor real se debió hacer mensual, no anual, para tener impacto claro. sugeriría dejarle la línea de pronóstico junto con la real también.", "bono": "0.5", "bono_expo": 0.0, "puntos": "99", "nota_original": "4.95", "nota": 4.95, "group_key": "7/19/2026 15:57:30_14_40_20_15", "grupo": "Brayan Meza y María Caballero y Steven Maury"}, "1044431213": {"nombre": "Carlos Andrés Gómez Hernández", "cedula": "1044431213", "marca": "-", "saneamiento": "-", "modelo": "-", "com_excel": "NO PRESENTÓ", "comercial": "-", "rendimiento": "-", "com_pbi": "NO PRESENTÓ", "bono": "-", "bono_expo": 0.0, "puntos": "0", "nota_original": "0", "nota": 0.0, "group_key": "NOPRESENTO_1044431213", "grupo": "Carlos Andrés Gómez Hernández"}, "1043135286": {"nombre": "Daniela Navarro", "cedula": "1043135286", "marca": "7/18/2026 18:23:07", "saneamiento": "25", "modelo": "40", "com_excel": "Excelente trabajo, el utilizar la desviación estándar con el Z-Score es un acierto enorme, recuerden que para usar estas estrategias se necesitan primero tener pruebas de validación de distribución normal.", "comercial": "20", "rendimiento": "15", "com_pbi": "Excelente dashboard, en la hoja de Rendimiento se descuidó el mantener los filtros y estructura, pues se debe generar sensación de \"Misma estructura\".", "bono": "0.5", "bono_expo": 0.3, "puntos": "110", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 18:23:07_25_40_20_15", "grupo": "Daniela Navarro y Laurys Ripoll"}, "1193594369": {"nombre": "Danna Gonzales", "cedula": "1193594369", "marca": "7/18/2026 21:16:33", "saneamiento": "19", "modelo": "35", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas. Además, calcularon los factores estacionales sobre los registros individuales y no sobre el total sumado de unidades del mes.", "comercial": "18", "rendimiento": "16", "com_pbi": "En concepto, la tendencia para comparar pronóstico con valor real se debió hacer mensual, no anual, para tener impacto claro.", "bono": "0.5", "bono_expo": 0.3, "puntos": "98", "nota_original": "4.9", "nota": 5.0, "group_key": "7/18/2026 21:16:33_19_35_18_16", "grupo": "Danna Gonzales y Silvana Maria Navarro Morron"}, "1143270489": {"nombre": "Deledys Valenzuela Ospino", "cedula": "1143270489", "marca": "7/20/2026 13:21:51", "saneamiento": "14", "modelo": "40", "com_excel": "Aunque en la hoja de datos filtró, en la tabla dinámica (donde sí debía hacerlo) lo olvidó, por lo que incluyó unidades que son de minoristas y online, el resto del proceso está impecable.", "comercial": "14", "rendimiento": "16", "com_pbi": "Sugiero el pronóstico de lo ya documentado y dejarle la línea de pronóstico junto con la real también. Buena colorimetría también. En la hoja comercial se le pudo añadir mayores efectos visuales.", "bono": "-", "bono_expo": 0.0, "puntos": "84", "nota_original": "4.2", "nota": 4.2, "group_key": "7/20/2026 13:21:51_14_40_14_16", "grupo": "Deledys Valenzuela Ospino"}, "1042246566": {"nombre": "Desibeth Barrios Alvis", "cedula": "1042246566", "marca": "7/18/2026 19:28:26", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "25", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "0.5", "bono_expo": 0.0, "puntos": "109", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 19:28:26_14_40_20_25", "grupo": "Desibeth Barrios Alvis y Zharick Ortiz Polo"}, "1119391298": {"nombre": "Gabriela Alexandra Tolosa Sierra", "cedula": "1119391298", "marca": "7/18/2026 22:06:06", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "25", "rendimiento": "20", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "0.5", "bono_expo": 0.3, "puntos": "109", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 22:06:06_14_40_25_20", "grupo": "Alvaro Javier Quintero Zabala y Gabriela Alexandra Tolosa Sierra"}, "1143151903": {"nombre": "Gabriela Calvo", "cedula": "1143151903", "marca": "7/18/2026 23:50:56", "saneamiento": "19", "modelo": "30", "com_excel": "Terminaron pronosticando con todos los meses rodados 1 mes hacia atrás, por lo que sus factores estacionales son completamente diferentes, aunque el proceso está correcto.", "comercial": "12", "rendimiento": "9", "com_pbi": "Seleccionaron las columnas no numéricas para la hoja de rendimiento y en general todas las variables utilizadas en el powerbi son de recuento, por lo que no aporta información ni de unidades ni de ventas.", "bono": "0.5", "bono_expo": 0.0, "puntos": "80", "nota_original": "4", "nota": 4.0, "group_key": "7/18/2026 23:50:56_19_30_12_9", "grupo": "Gabriela Calvo y Soranny Gallardo"}, "1044602838": {"nombre": "Geraldine Gallardo", "cedula": "1044602838", "marca": "7/18/2026 14:37:09", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "15", "rendimiento": "13", "com_pbi": "Se puede mejorar la graficación y colores, sin embargo, solo quedó pendiente mostrar en el gráfico de rendimiento tanto el valor real como el pronostico en paralelo (2 líneas de diferente color)", "bono": "0.5", "bono_expo": 0.0, "puntos": "92", "nota_original": "4.6", "nota": 4.6, "group_key": "7/18/2026 14:37:09_14_40_15_13", "grupo": "Geraldine Gallardo"}, "1102852414": {"nombre": "Katerin Kuast Garizao", "cedula": "1102852414", "marca": "7/20/2026 4:25:15", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "25", "rendimiento": "20", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "-", "bono_expo": 0.0, "puntos": "99", "nota_original": "4.95", "nota": 4.95, "group_key": "7/20/2026 4:25:15_14_40_25_20", "grupo": "Katerin Kuast Garizao y Lorena Acuña"}, "1140876489": {"nombre": "Katia Barrios Manrique", "cedula": "1140876489", "marca": "7/18/2026 23:14:14", "saneamiento": "14", "modelo": "17", "com_excel": "Hicieron el modelo de pronóstico con las ventas, y debían pronosticas las unidades.", "comercial": "25", "rendimiento": "25", "com_pbi": "El uso de DAX y medidas fue estupendo, los felicito en este aspecto y con el dashboard que hicieron, quedaría aún mejor con un eje X de todos los meses individuales y no acumulados por año.", "bono": "0.5", "bono_expo": 0.0, "puntos": "91", "nota_original": "4.55", "nota": 4.55, "group_key": "7/18/2026 23:14:14_14_17_25_25", "grupo": "Albert Orozco Montes y Katia Barrios Manrique y Keidy Cabrales Cuadro"}, "1063482138": {"nombre": "Keidy Cabrales Cuadro", "cedula": "1063482138", "marca": "7/18/2026 23:14:14", "saneamiento": "14", "modelo": "17", "com_excel": "Hicieron el modelo de pronóstico con las ventas, y debían pronosticas las unidades.", "comercial": "25", "rendimiento": "25", "com_pbi": "El uso de DAX y medidas fue estupendo, los felicito en este aspecto y con el dashboard que hicieron, quedaría aún mejor con un eje X de todos los meses individuales y no acumulados por año.", "bono": "0.5", "bono_expo": 0.0, "puntos": "91", "nota_original": "4.55", "nota": 4.55, "group_key": "7/18/2026 23:14:14_14_17_25_25", "grupo": "Albert Orozco Montes y Katia Barrios Manrique y Keidy Cabrales Cuadro"}, "1042434500": {"nombre": "Laurys Ripoll", "cedula": "1042434500", "marca": "7/18/2026 18:23:07", "saneamiento": "25", "modelo": "40", "com_excel": "Excelente trabajo, el utilizar la desviación estándar con el Z-Score es un acierto enorme, recuerden que para usar estas estrategias se necesitan primero tener pruebas de validación de distribución normal.", "comercial": "20", "rendimiento": "15", "com_pbi": "Excelente dashboard, en la hoja de Rendimiento se descuidó el mantener los filtros y estructura, pues se debe generar sensación de \"Misma estructura\".", "bono": "0.5", "bono_expo": 0.0, "puntos": "110", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 18:23:07_25_40_20_15", "grupo": "Daniela Navarro y Laurys Ripoll"}, "1143464125": {"nombre": "Lorena Acuña", "cedula": "1143464125", "marca": "7/20/2026 4:25:15", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "25", "rendimiento": "20", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "-", "bono_expo": 0.0, "puntos": "99", "nota_original": "4.95", "nota": 4.95, "group_key": "7/20/2026 4:25:15_14_40_25_20", "grupo": "Katerin Kuast Garizao y Lorena Acuña"}, "1043130666": {"nombre": "María Caballero", "cedula": "1043130666", "marca": "7/19/2026 15:57:30", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "15", "com_pbi": "En concepto, la tendencia para comparar pronóstico con valor real se debió hacer mensual, no anual, para tener impacto claro. sugeriría dejarle la línea de pronóstico junto con la real también.", "bono": "0.5", "bono_expo": 0.0, "puntos": "99", "nota_original": "4.95", "nota": 4.95, "group_key": "7/19/2026 15:57:30_14_40_20_15", "grupo": "Brayan Meza y María Caballero y Steven Maury"}, "1192795508": {"nombre": "María Isabel Quintero", "cedula": "1192795508", "marca": "7/18/2026 23:50:47", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "20", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "0.5", "bono_expo": 0.0, "puntos": "104", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 23:50:47_14_40_20_20", "grupo": "María Isabel Quintero"}, "1001884477": {"nombre": "Shelsea Stephanie Dorado Bradford", "cedula": "1001884477", "marca": "-", "saneamiento": "-", "modelo": "-", "com_excel": "NO PRESENTÓ", "comercial": "-", "rendimiento": "-", "com_pbi": "NO PRESENTÓ", "bono": "-", "bono_expo": 0.0, "puntos": "0", "nota_original": "0", "nota": 0.0, "group_key": "NOPRESENTO_1001884477", "grupo": "Shelsea Stephanie Dorado Bradford"}, "1234095426": {"nombre": "Silvana Maria Navarro Morron", "cedula": "1234095426", "marca": "7/18/2026 21:16:33", "saneamiento": "19", "modelo": "35", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas. Además, calcularon los factores estacionales sobre los registros individuales y no sobre el total sumado de unidades del mes.", "comercial": "18", "rendimiento": "16", "com_pbi": "En concepto, la tendencia para comparar pronóstico con valor real se debió hacer mensual, no anual, para tener impacto claro.", "bono": "0.5", "bono_expo": 0.3, "puntos": "98", "nota_original": "4.9", "nota": 5.0, "group_key": "7/18/2026 21:16:33_19_35_18_16", "grupo": "Danna Gonzales y Silvana Maria Navarro Morron"}, "1044604611": {"nombre": "Soranny Gallardo", "cedula": "1044604611", "marca": "7/18/2026 23:50:56", "saneamiento": "19", "modelo": "30", "com_excel": "Terminaron pronosticando con todos los meses rodados 1 mes hacia atrás, por lo que sus factores estacionales son completamente diferentes, aunque el proceso está correcto.", "comercial": "12", "rendimiento": "9", "com_pbi": "Seleccionaron las columnas no numéricas para la hoja de rendimiento y en general todas las variables utilizadas en el powerbi son de recuento, por lo que no aporta información ni de unidades ni de ventas.", "bono": "0.5", "bono_expo": 0.0, "puntos": "80", "nota_original": "4", "nota": 4.0, "group_key": "7/18/2026 23:50:56_19_30_12_9", "grupo": "Gabriela Calvo y Soranny Gallardo"}, "1042240112": {"nombre": "Steven Maury", "cedula": "1042240112", "marca": "7/19/2026 15:57:30", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "15", "com_pbi": "En concepto, la tendencia para comparar pronóstico con valor real se debió hacer mensual, no anual, para tener impacto claro. sugeriría dejarle la línea de pronóstico junto con la real también.", "bono": "0.5", "bono_expo": 0.3, "puntos": "99", "nota_original": "4.95", "nota": 5.0, "group_key": "7/19/2026 15:57:30_14_40_20_15", "grupo": "Brayan Meza y María Caballero y Steven Maury"}, "1143231656": {"nombre": "Wendy Escobar Contreras", "cedula": "1143231656", "marca": "7/21/2026 1:08:14", "saneamiento": "19", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "15", "rendimiento": "15", "com_pbi": "En la hoja comercial hicieron falta gráficos para apoyar los análisis, en la de rendimiento se incluyó solo el histórico (hasta 2026-06) y no el pronóstico que es el objetivo final, buen uso general de colorimetría y de espaciados.", "bono": "-", "bono_expo": 0.0, "puntos": "89", "nota_original": "4.45", "nota": 4.45, "group_key": "7/21/2026 1:08:14_19_40_15_15", "grupo": "Angelica Matos Garay y Wendy Escobar Contreras"}, "1079911476": {"nombre": "Zharick Ortiz Polo", "cedula": "1079911476", "marca": "7/18/2026 19:28:26", "saneamiento": "14", "modelo": "40", "com_excel": "Hizo falta excluir las ventas devuelas y canceladas porque el pronóstico solo tiene sentido con completadas.", "comercial": "20", "rendimiento": "25", "com_pbi": "Excelente dashboard, diferenciaron el pronóstico de lo ya documentado, sugeriría dejarle la línea de pronóstico junto con la real también. Buena colorimetría también.", "bono": "0.5", "bono_expo": 0.0, "puntos": "109", "nota_original": "5", "nota": 5.0, "group_key": "7/18/2026 19:28:26_14_40_20_25", "grupo": "Desibeth Barrios Alvis y Zharick Ortiz Polo"}};
+
+        function consultar() {
+            const cedulaInput = document.getElementById('cedula').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            const resultDiv = document.getElementById('result');
+            
+            if (!db[cedulaInput]) {
+                errorMsg.style.display = 'block';
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            errorMsg.style.display = 'none';
+            resultDiv.style.display = 'block';
+            
+            const student = db[cedulaInput];
+            document.getElementById('student-name').innerText = student.grupo;
+            document.getElementById('student-id').innerText = student.cedula;
+            document.getElementById('student-timestamp').innerText = student.marca === '-' ? 'No registró entrega' : student.marca;
+            
+            // Tabla Excel
+            let san = student.saneamiento === '-' ? 0 : parseFloat(student.saneamiento);
+            let mod = student.modelo === '-' ? 0 : parseFloat(student.modelo);
+            let totalExcel = san + mod;
+            
+            let excelHTML = `<tr><th>Criterio</th><th>Puntaje obtenido</th></tr>`;
+            excelHTML += `<tr class="bg-estructura"><td>Saneamiento de datos (Máximo 20)</td><td class="bg-white">${student.saneamiento}</td></tr>`;
+            excelHTML += `<tr class="bg-forma"><td>Modelo de pronóstico (Máximo 40)</td><td class="bg-white">${student.modelo}</td></tr>`;
+            excelHTML += `<tr class="bg-total"><td>Total Excel (Máximo 60)</td><td>${totalExcel}</td></tr>`;
+            
+            document.getElementById('excel-table').innerHTML = excelHTML;
+            document.getElementById('excel-comments').innerHTML = `<strong>Comentarios Excel:</strong><br><br>${student.com_excel}`;
+            
+            // Tabla Power BI
+            let com = student.comercial === '-' ? 0 : parseFloat(student.comercial);
+            let ren = student.rendimiento === '-' ? 0 : parseFloat(student.rendimiento);
+            let totalPbi = com + ren;
+            
+            let pbiHTML = `<tr><th>Criterio</th><th>Puntaje obtenido</th></tr>`;
+            pbiHTML += `<tr class="bg-estrategias"><td>Dashboard comercial (Máximo 20)</td><td class="bg-white">${student.comercial}</td></tr>`;
+            pbiHTML += `<tr class="bg-razonamiento"><td>Dashboard de rendimiento (Máximo 20)</td><td class="bg-white">${student.rendimiento}</td></tr>`;
+            pbiHTML += `<tr class="bg-total"><td>Total Power BI (Máximo 40)</td><td>${totalPbi}</td></tr>`;
+            
+            document.getElementById('pbi-table').innerHTML = pbiHTML;
+            document.getElementById('pbi-comments').innerHTML = `<strong>Comentarios Power BI:</strong><br><br>${student.com_pbi}`;
+            
+            // Info Resumen
+            document.getElementById('bono-val').innerText = student.bono === '-' ? '0.0' : `+${student.bono}`;
+            document.getElementById('bono-expo-val').innerText = student.bono_expo > 0 ? `+${student.bono_expo}` : '0.0';
+            document.getElementById('final-points').innerText = `${student.puntos} / 100 puntos`;
+            
+            // Mostrar la nota asegurando los 2 decimales
+            document.getElementById('final-grade').innerText = student.nota.toFixed(2);
+        }
+
+        // Permitir Enter para buscar
+        document.getElementById("cedula").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                consultar();
+            }
+        });
+    </script>
+</body>
+</html>
