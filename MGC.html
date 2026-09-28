@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de estudiantes - Maestría en Gestión de la Calidad Integral en las Organizaciones</title>
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0b224e;
+            --primary-light: #1d3b70;
+            --accent: #0056b3;
+            --bg-neutral: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --success: #2e7d32;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            /* Fondo neutro y limpio */
+            background: linear-gradient(135deg, #f4f6f9 0%, #e9ecef 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        /* Modal selección inicial (Fondo oscuro superpuesto como en la imagen) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(43, 60, 88, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-card h2 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .modal-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .modal-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-modal {
+            padding: 14px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--text-main);
+            background: white;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-modal:hover {
+            background: var(--bg-neutral);
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .mode-badge {
+            background: var(--bg-neutral);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-badge button {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        /* Grid system */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--bg-neutral);
+            padding-bottom: 10px;
+        }
+
+        /* Enlaces / Botones */
+        .link-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--bg-neutral);
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .link-btn:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        .link-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Listas estructuradas ítem por ítem */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card {
+            background: var(--bg-neutral);
+            border-radius: 8px;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+        }
+
+        .item-value {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .item-sublist {
+            list-style: none;
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-sublist li {
+            font-size: 0.82rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .item-sublist li::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .item-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 0;
+            align-self: flex-end;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .copy-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Tablas */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-neutral);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Créditos Footer */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .modal-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Modal de selección de modalidad (Aparece siempre al cargar) -->
+    <div class="modal-overlay" id="modalSelection">
+        <div class="modal-card">
+            <i class="fa-solid fa-graduation-cap fa-3x" style="color: #0b224e; margin-bottom: 15px;"></i>
+            <h2>¡Bienvenido al portal MGC!</h2>
+            <p>Maestría en Gestión de la Calidad Integral en las Organizaciones. Selecciona tu modalidad para personalizar tu experiencia:</p>
+            <div class="modal-btns">
+                <button class="btn-modal" onclick="selectMode('presencial')">
+                    <i class="fa-solid fa-building-columns"></i> Modalidad presencial
+                </button>
+                <button class="btn-modal" onclick="selectMode('virtual')">
+                    <i class="fa-regular fa-laptop"></i> Modalidad virtual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        
+        <!-- Header principal -->
+        <header>
+            <div class="brand">
+                <h1>Hub del estudiante (MGC) - Maestría en Gestión de la Calidad Integral en las Organizaciones</h1>
+                <p>Corporación Universitaria Americana - Sede Barranquilla</p>
+            </div>
+            <div class="mode-badge">
+                <i class="fa-solid fa-user-graduate"></i>
+                <span id="currentModeText">Modalidad: Presencial</span>
+                <button onclick="toggleMode()">(Cambiar a virtual)</button>
+            </div>
+        </header>
+
+        <!-- Sección 1: Accesos rápidos y contactos -->
+        <div class="grid">
+            
+            <!-- Plataformas principales -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-network-wired"></i> Plataformas principales
+                </div>
+                <div class="link-list">
+                    <a href="https://aplicaciones.americana.edu.co:9090/integracion/sinubq" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-database" style="color: #0056b3;"></i>
+                            <span>SINÚ (Procesos académicos y notas)</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    
+                    <!-- Enlace dinámico para EVA -->
+                    <a href="https://evapresencial.americana.edu.co/login/index.php" target="_blank" class="link-btn" id="evaAnchor">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-chalkboard-user" style="color: #28a745;"></i>
+                            <span id="evaSpan">EVA (Entorno virtual de aprendizaje)</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+
+                    <a href="https://outlook.office.com" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-envelope" style="color: #0078d4;"></i>
+                            <span>Correo institucional (@americana.edu.co)</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <a href="https://teams.microsoft.com" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-users-viewfinder" style="color: #6264a7;"></i>
+                            <span>Cuenta Teams (@teamsamericana.edu.co)</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contactos académicos estructurados -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-address-book"></i> Contactos académicos
+                </div>
+                <div class="item-list">
+                    <div class="item-card">
+                        <div class="item-label">Coordinador académico</div>
+                        <div class="item-value" style="font-size: 0.95rem;">Alessandro Villanueva Cantillo</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">alessandro_villanuevadoc@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('alessandro_villanuevadoc@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                        <div style="margin-top: 6px;">
+                            <a href="https://wa.me/573022812033" target="_blank" class="link-btn" style="padding: 6px 10px; font-size: 0.78rem; background: #e8f5e9; color: #2e7d32;">
+                                <i class="fa-brands fa-whatsapp"></i> Chat directo (+57 302 281 2033)
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-label">Atención comercial posgrados</div>
+                        <div style="margin-top: 4px;">
+                            <a href="https://wa.me/573004774293" target="_blank" class="link-btn" style="padding: 6px 10px; font-size: 0.78rem; background: #e3f2fd; color: #1565c0;">
+                                <i class="fa-brands fa-whatsapp"></i> Chat posgrados (+57 300 477 4293)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repositorio institucional -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-file-pdf"></i> Repositorio documental
+                </div>
+                <div class="link-list">
+                    <a href="https://drive.google.com/file/d/1FWejvvKTAWVYRyNtWa4Hfd9W3oEl7pML/view?usp=sharing" target="_blank" class="link-btn" style="background: #fff8e1; border-color: #ffe082;">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-key" style="color: #f57f17;"></i>
+                            <span>Instructivo de consulta de credenciales</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <a href="https://americanabaq.edu.co/" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-globe"></i> Página institucional
+                        </div>
+                        <i class="fa-solid fa-angle-right"></i>
+                    </a>
+                    <a href="https://americanabaq.edu.co/maestria-en-gestion-de-la-calidad-integral-de-las-organizaciones/" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-award"></i> Página de la maestría
+                        </div>
+                        <i class="fa-solid fa-angle-right"></i>
+                    </a>
+                    <a href="https://americanabaq.edu.co/wp-content/uploads/2026/08/BROCHURE-MAESTRIA-EN-GESTION-DE-LA-CALIDAD-INTEGRAL.pdf" target="_blank" class="link-btn">
+                        <div class="link-btn-content">
+                            <i class="fa-solid fa-download" style="color: #d32f2f;"></i> Descargar brochure
+                        </div>
+                        <i class="fa-solid fa-angle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sección 2: Programación académica -->
+        <div class="card" style="margin-bottom: 25px;">
+            <div class="card-title">
+                <i class="fa-solid fa-calendar-days"></i> Programación académica oficial (2026-2)
+            </div>
+            
+            <!-- Programación Presencial -->
+            <div id="schedulePresencial" class="table-responsive hidden">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+                    <strong>Horarios presenciales:</strong> Viernes de 6:00 p.m. a 9:00 p.m. | Sábados de 8:00 a.m. a 5:00 p.m.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Módulo / Asignatura</th>
+                            <th>Fechas de sesiones</th>
+                            <th>Créditos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Gestión Estratégica de las Organizaciones</strong></td>
+                            <td>Sep 11 y 12 • Sep 25 y 26 • Oct 02 y 03</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fundamentos de la Calidad</strong></td>
+                            <td>Oct 16 y 17 • Oct 23 y 24 • Nov 06 y 07</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fundamentos de los Sistemas de Gestión de la Calidad</strong></td>
+                            <td>Nov 13 y 14 • Nov 27 y 28 • Dic 11 y 12</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Seminario de Investigación I</strong></td>
+                            <td>Ene 15 y 16 (2027) • Ene 22 y 23 (2027)</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Profundización I</strong></td>
+                            <td>Feb 12 y 13 (2027) • Feb 24 y 25 (2027)</td>
+                            <td>2</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                    * <em>Receso de fin de año:</em> Las actividades presenciales de 2026 finalizan el sábado 12 de diciembre y se retoman el viernes 15 de enero de 2027.
+                </p>
+            </div>
+
+            <!-- Programación Virtual -->
+            <div id="scheduleVirtual" class="table-responsive hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fechas de clases</th>
+                            <th>Módulo / Asignatura (Virtual)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Oct 13 - Dic 06</td>
+                            <td>Ecosistema de Emprendimiento e Innovación en las Organizaciones</td>
+                        </tr>
+                        <tr>
+                            <td>Oct 13 - Dic 06</td>
+                            <td>Fundamentos de la Calidad</td>
+                        </tr>
+                        <tr>
+                            <td>Feb 01 - Abr 04 (2027)</td>
+                            <td>Fundamentos de Sistemas de Gestión de la Calidad</td>
+                        </tr>
+                        <tr>
+                            <td>Feb 01 - Abr 04 (2027)</td>
+                            <td>Profundización I</td>
+                        </tr>
+                        <tr>
+                            <td>Feb 01 - Abr 04 (2027)</td>
+                            <td>Seminario de Investigación I</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección 3: Soporte, sedes y salud -->
+        <div class="grid">
+            
+            <!-- Canales de soporte técnico -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-headset"></i> Canales de soporte técnico
+                </div>
+                <div class="item-list">
+                    <div class="item-card">
+                        <div class="item-label">Soporte SINÚ</div>
+                        <div class="item-value">soportesinu@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('soportesinu@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-label">Soporte EVA</div>
+                        <div class="item-value">soporte.eva@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('soporte.eva@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-label">Soporte correo institucional / Teams</div>
+                        <div class="item-value">soporteenlinea@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('soporteenlinea@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-label">Soporte cuenta Teams</div>
+                        <div class="item-value">soporteteams@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('soporteteams@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Directorio de sedes desglosado elemento por elemento -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-location-dot"></i> Directorio de sedes
+                </div>
+                <div class="item-list">
+                    <div class="item-card">
+                        <div class="item-label">Sede Prado</div>
+                        <div class="item-value">Cra. 53 #64-142</div>
+                        <div class="item-desc">Sede principal de clases de la maestría. Se encuentra también rectoría.</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-label">Sede Principal - Cosmos</div>
+                        <div class="item-value">Calle 72 # 41C - 64</div>
+                        <div class="item-desc">Lugares de interés general:</div>
+                        <ul class="item-sublist">
+                            <li>Oficina de posgrados (2.º piso)</li>
+                            <li>Oficina de talento humano (2.º piso)</li>
+                            <li>Enfermería (1.er piso)</li>
+                            <li>Bienestar (1.er piso)</li>
+                            <li>Admisiones (al lado del edificio)</li>
+                        </ul>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-label">Sede Romelio</div>
+                        <div class="item-value">Cra. 46 # 79 – 73</div>
+                        <div class="item-desc">Instalaciones del gimnasio institucional.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enfermería y salud integral estructurado 1 x 1 -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-heart-pulse"></i> Enfermería y salud integral
+                </div>
+                <div class="item-card" style="margin-bottom: 8px;">
+                    <div class="item-label">Servicios disponibles</div>
+                    <ul class="item-sublist">
+                        <li>Citas de medicina general</li>
+                        <li>Psicología clínica</li>
+                        <li>Asesoría en planificación familiar</li>
+                        <li>Validación de incapacidades por EPS</li>
+                        <li>Seguimiento de salud</li>
+                        <li>Servicio de urgencias con AMI</li>
+                    </ul>
+                </div>
+                <div class="item-list">
+                    <div class="item-card">
+                        <div class="item-label">Coordinadora de salud integral</div>
+                        <div class="item-value">Carmen Elisa Valencia</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">carmenvalencia@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('carmenvalencia@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+
+                    <!-- Incapacidades según modalidad -->
+                    <div id="healthPresencial" class="item-card hidden">
+                        <div class="item-label">Validación de incapacidades (Estudiantes presenciales)</div>
+                        <div class="item-value">Jessica Romero Jimenez (Enfermera)</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">jromero@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('jromero@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+
+                    <div id="healthVirtual" class="item-card hidden">
+                        <div class="item-label">Validación de incapacidades (Estudiantes virtuales)</div>
+                        <div class="item-value">Yelianis Escalante Sarabia (Enfermera)</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">auxenfermeria@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('auxenfermeria@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-label">Medicina general y psicología clínica</div>
+                        <div class="item-value">Adriana García Ariarte (Enfermera)</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">garciaadriana@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('garciaadriana@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-label">Incapacidades para funcionarios y docentes</div>
+                        <div class="item-value">Melina Cuentas Logreira (Enfermera)</div>
+                        <div class="item-value" style="font-size: 0.82rem; font-weight: 500;">melinacuentas@americana.edu.co</div>
+                        <button class="copy-btn" onclick="copyToClipboard('melinacuentas@americana.edu.co')"><i class="fa-regular fa-copy"></i> Copiar correo</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer con créditos de autoría -->
+        <footer>
+            <p>Diseñado y desarrollado por <strong>Alessandro Villanueva Cantillo</strong> - Coordinador académico de la Maestría en Gestión de la Calidad Integral en las Organizaciones (MGC).</p>
+        </footer>
+
+    </div>
+
+    <!-- Scripts de funcionalidad -->
+    <script>
+        let currentMode = 'presencial';
+
+        // Mostrar siempre el modal al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('modalSelection').style.display = 'flex';
+        });
+
+        function selectMode(mode) {
+            currentMode = mode;
+            applyMode(currentMode);
+            const modal = document.getElementById('modalSelection');
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function toggleMode() {
+            currentMode = (currentMode === 'presencial') ? 'virtual' : 'presencial';
+            applyMode(currentMode);
+        }
+
+        function applyMode(mode) {
+            const modeText = document.getElementById('currentModeText');
+            const modeBadge = document.querySelector('.mode-badge button');
+            const schedPres = document.getElementById('schedulePresencial');
+            const schedVirt = document.getElementById('scheduleVirtual');
+            const healthPres = document.getElementById('healthPresencial');
+            const healthVirt = document.getElementById('healthVirtual');
+            const evaAnchor = document.getElementById('evaAnchor');
+            const evaSpan = document.getElementById('evaSpan');
+
+            if (mode === 'presencial') {
+                modeText.innerText = "Modalidad: Presencial";
+                modeBadge.innerText = "(Cambiar a virtual)";
+                schedPres.classList.remove('hidden');
+                schedVirt.classList.add('hidden');
+                healthPres.classList.remove('hidden');
+                healthVirt.classList.add('hidden');
+                
+                // Actualizar enlace de EVA
+                evaAnchor.href = "https://evapresencial.americana.edu.co/login/index.php";
+                evaSpan.innerText = "EVA (Entorno virtual de aprendizaje)";
+            } else {
+                modeText.innerText = "Modalidad: Virtual";
+                modeBadge.innerText = "(Cambiar a presencial)";
+                schedVirt.classList.remove('hidden');
+                schedPres.classList.add('hidden');
+                healthVirt.classList.remove('hidden');
+                healthPres.classList.add('hidden');
+                
+                // Actualizar enlace de EVA para virtuales
+                evaAnchor.href = "https://evavirtual.americana.edu.co/login/index.php";
+                evaSpan.innerText = "EVA (Entorno virtual de aprendizaje - Virtual)";
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Correo copiado al portapapeles: ' + text);
+            });
+        }
+    </script>
+</body>
+</html>
