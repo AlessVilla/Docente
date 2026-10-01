@@ -9,6 +9,7 @@
         :root {
             --primary: #1A237E;
             --secondary: #4CAF50;
+            --warning: #f39c12;
             --danger: #f44336;
             --bg-light: #f4f7f6;
             --text-dark: #2c3e50;
@@ -19,14 +20,14 @@
         
         .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
         
-        /* Paneles */
+        /* paneles */
         .panel-left { width: 45%; padding: 1.5rem; background: white; border-right: 1px solid var(--border); overflow-y: auto; transition: width 0.3s ease; }
         .panel-right { width: 55%; padding: 1.5rem; background: var(--bg-light); overflow-y: auto; transition: width 0.3s ease; position: relative; }
         
         .panel-left.hidden { display: none; }
         .panel-right.expanded { width: 100%; }
 
-        /* Controles de UX */
+        /* controles de UX */
         .btn-toggle {
             position: absolute; top: 1.5rem; right: 1.5rem; background: var(--primary); color: white;
             border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; z-index: 10;
@@ -36,7 +37,7 @@
         h2 { font-size: 1.3rem; }
         h3 { font-size: 1.1rem; margin-top: 20px; }
         
-        /* Formularios */
+        /* formularios */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; }
         input[type="text"], input[type="number"], select, input[list] {
@@ -45,11 +46,11 @@
         .checkbox-group { display: flex; gap: 15px; margin-top: 10px; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
-        button { width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; color: white; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
         .btn-add { background: var(--primary); margin-top: 10px; }
         .btn-run { background: var(--secondary); font-size: 1.1rem; padding: 12px; margin-top: 20px; }
         
-        /* Tarjetas de bandeja */
+        /* tarjetas de bandeja */
         .card { 
             background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--primary); 
             padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem;
@@ -59,14 +60,17 @@
         .card-title { font-weight: bold; margin-bottom: 4px; }
         .tag { background: #e3f2fd; color: #1976d2; padding: 3px 6px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 5px; display: inline-block; }
         
-        /* Botón papelera */
-        .btn-delete { 
-            background: transparent; color: var(--danger); border: 1px solid transparent; width: auto; 
-            padding: 6px; font-size: 1.2rem; cursor: pointer; border-radius: 4px; transition: 0.2s;
+        /* botones de acción */
+        .card-actions { display: flex; gap: 5px; }
+        .btn-action { 
+            background: transparent; border: 1px solid transparent; width: auto; 
+            padding: 6px; font-size: 1.1rem; cursor: pointer; border-radius: 4px; transition: 0.2s;
         }
-        .btn-delete:hover { background: #ffebee; border: 1px solid #ffcdd2; }
+        .btn-action.edit:hover { background: #fff3e0; border: 1px solid #ffe0b2; color: var(--warning); }
+        .btn-action.delete { color: var(--danger); }
+        .btn-action.delete:hover { background: #ffebee; border: 1px solid #ffcdd2; }
         
-        /* Tablas */
+        /* tablas e inventario */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; margin-bottom: 15px; font-size: 0.85rem; }
         th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--primary); color: white; }
@@ -76,21 +80,25 @@
         .status-fail { color: var(--danger); font-weight: bold; }
         .empty-state { text-align: center; color: #7f8c8d; margin-top: 20px; font-style: italic; font-size: 0.9rem; }
         
+        /* estilos para bloqueo de salones */
+        .btn-lock { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px; width: auto; color: inherit; }
+        .btn-lock:hover { transform: scale(1.15); }
+        .row-blocked { opacity: 0.4; background-color: #e0e0e0; text-decoration: line-through; }
+        
         footer { text-align: center; padding: 10px; background: white; border-top: 1px solid var(--border); font-size: 0.8rem; color: #666; }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <!-- Panel izquierdo: controles y demanda -->
+        <!-- panel izquierdo: controles y demanda -->
         <div class="panel-left" id="panelIzquierdo">
             <h2>1. Configuración de la demanda</h2>
             
             <div class="form-group">
                 <label>Selecciona o busca el programa</label>
-                <input list="listaProgramas" id="programaInput" placeholder="Ej. Escribe 'derecho' o 'maestría'...">
+                <input list="listaProgramas" id="programaInput" placeholder="Ej. escribe 'derecho' o 'maestría'...">
                 <datalist id="listaProgramas">
-                    <!-- Opciones con capitalización original solicitada -->
                     <option value="Especialización en Derecho Administrativo">
                     <option value="Especialización en contabilidad internacional">
                     <option value="Especialización en Contratación Estatal">
@@ -131,7 +139,7 @@
             
             <div class="form-group">
                 <label>Aforo total (incluyendo docente e invitados)</label>
-                <input type="number" id="personas" placeholder="Ej. 35 (incluyendo docente e invitados)" min="1">
+                <input type="number" id="personas" placeholder="Ej. 35" min="1">
             </div>
             
             <div class="form-group checkbox-group">
@@ -139,7 +147,7 @@
                 <label><input type="checkbox" id="reqTablero" checked> Requiere tablero</label>
             </div>
             
-            <button class="btn-add" onclick="procesarIngreso()">+ Agregar a la bandeja</button>
+            <button class="btn-add" id="btnAgregar" onclick="procesarIngreso()">+ Agregar a la bandeja</button>
 
             <h3>Bandeja de pendientes</h3>
             <div id="listaPendientes"><div class="empty-state">No hay clases pendientes.</div></div>
@@ -147,7 +155,7 @@
             <button class="btn-run" onclick="ejecutarOptimizacion()">Asignar salones automáticamente</button>
         </div>
 
-        <!-- Panel derecho: recursos y resultados -->
+        <!-- panel derecho: recursos y resultados -->
         <div class="panel-right" id="panelDerecho">
             <button class="btn-toggle" id="btnToggle" onclick="alternarPanel()">Ocultar panel de configuración</button>
             
@@ -164,46 +172,48 @@
     </footer>
 
     <script>
-        // Inventario completo de 33 salones
+        // inventario de salones base con propiedad de bloqueo inicializada
         const salonesBase = [
-            { id: "A01", sede: "Cosmos", cap: 35, sis: 1, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A02", sede: "Cosmos", cap: 35, sis: 1, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A04", sede: "Cosmos", cap: 30, sis: 1, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A101", sede: "Cosmos", cap: 25, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A105", sede: "Cosmos", cap: 35, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A204", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A205", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A308", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A309", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A301", sede: "Cosmos", cap: 40, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A404", sede: "Cosmos", cap: 40, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A413", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "A414", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B101", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B102", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B103", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B201", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B202", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B203", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B301", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B302", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "B303", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "Sala 03 de Biblioteca", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "CINEMATECA", sede: "Cosmos", cap: 35, sis: 0, tab: 1, p_maest: 0, req_apr: 1 },
-            { id: "Arts Room", sede: "Romelio", cap: 50, sis: 0, tab: 1, p_maest: 0, req_apr: 1 },
-            { id: "Creativity Room", sede: "Romelio", cap: 50, sis: 0, tab: 1, p_maest: 0, req_apr: 1 },
-            { id: "Sala 02", sede: "Romelio", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 1 },
-            { id: "Aurora", sede: "Prado", cap: 58, sis: 0, tab: 1, p_maest: 0, req_apr: 0 },
-            { id: "Spectra", sede: "Prado", cap: 44, sis: 0, tab: 1, p_maest: 1, req_apr: 0 },
-            { id: "Croma", sede: "Prado", cap: 44, sis: 0, tab: 1, p_maest: 1, req_apr: 0 },
-            { id: "Sala Juntas Luis Miguel Corredor", sede: "Prado", cap: 27, sis: 0, tab: 0, p_maest: 1, req_apr: 1 },
-            { id: "Sala Juntas Auxiliar", sede: "Prado", cap: 8, sis: 0, tab: 0, p_maest: 1, req_apr: 1 },
-            { id: "Sala Juntas Vicerrectoría", sede: "Prado", cap: 11, sis: 0, tab: 0, p_maest: 1, req_apr: 1 }
+            { id: "A01", sede: "Cosmos", cap: 35, sis: 1, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A02", sede: "Cosmos", cap: 35, sis: 1, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A04", sede: "Cosmos", cap: 30, sis: 1, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A101", sede: "Cosmos", cap: 25, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A105", sede: "Cosmos", cap: 35, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A204", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A205", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A308", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A309", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A301", sede: "Cosmos", cap: 40, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A404", sede: "Cosmos", cap: 40, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A413", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "A414", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B101", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B102", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B103", sede: "Cosmos", cap: 45, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B201", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B202", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B203", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B301", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B302", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "B303", sede: "Cosmos", cap: 30, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "Sala 03 de Biblioteca", sede: "Cosmos", cap: 30, sis: 1, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "CINEMATECA", sede: "Cosmos", cap: 35, sis: 0, tab: 1, p_maest: 0, req_apr: 1, es_junta: 0, bloqueado: false },
+            { id: "Auditorio Jaime Muñoz", sede: "Cosmos", cap: 150, sis: 0, tab: 1, p_maest: 0, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "Sala de juntas de Mercadeo", sede: "Cosmos", cap: 8, sis: 0, tab: 1, p_maest: 1, req_apr: 0, es_junta: 1, bloqueado: false },
+            { id: "Arts Room", sede: "Romelio", cap: 50, sis: 0, tab: 1, p_maest: 0, req_apr: 1, es_junta: 0, bloqueado: false },
+            { id: "Creativity Room", sede: "Romelio", cap: 50, sis: 0, tab: 1, p_maest: 0, req_apr: 1, es_junta: 0, bloqueado: false },
+            { id: "Sala 02", sede: "Romelio", cap: 30, sis: 1, tab: 1, p_maest: 0, req_apr: 1, es_junta: 0, bloqueado: false },
+            { id: "Spectra", sede: "Prado", cap: 44, sis: 0, tab: 1, p_maest: 1, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "Croma", sede: "Prado", cap: 44, sis: 0, tab: 1, p_maest: 1, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "Aurora", sede: "Prado", cap: 58, sis: 0, tab: 1, p_maest: 1, req_apr: 0, es_junta: 0, bloqueado: false },
+            { id: "Sala Juntas Luis Miguel Corredor", sede: "Prado", cap: 27, sis: 0, tab: 0, p_maest: 1, req_apr: 1, es_junta: 1, bloqueado: false },
+            { id: "Sala Juntas Auxiliar", sede: "Prado", cap: 8, sis: 0, tab: 0, p_maest: 1, req_apr: 1, es_junta: 1, bloqueado: false },
+            { id: "Sala Juntas Vicerrectoría", sede: "Prado", cap: 12, sis: 0, tab: 0, p_maest: 1, req_apr: 1, es_junta: 1, bloqueado: false }
         ];
 
         let clasesPendientes = [];
+        let indexEdicion = null; 
 
-        // Alternar visualización del panel izquierdo
         function alternarPanel() {
             const panelIzq = document.getElementById('panelIzquierdo');
             const panelDer = document.getElementById('panelDerecho');
@@ -220,26 +230,41 @@
             }
         }
 
-        // Renderizar tabla de inventario
+        // renderiza el inventario con el botón de bloqueo dinámico
         function renderizarInventario() {
             let html = `<table class="table-compact">
-                            <thead><tr><th>Sede</th><th>Salón</th><th>Cap.</th><th>Sistemas</th><th>Maestría</th></tr></thead>
+                            <thead><tr><th>Sede</th><th>Salón</th><th>Cap.</th><th>Sistemas</th><th>Maestría</th><th>Estado</th></tr></thead>
                             <tbody>`;
-            salonesBase.forEach(s => {
-                html += `<tr>
+            salonesBase.forEach((s, index) => {
+                let rowClass = s.bloqueado ? 'row-blocked' : '';
+                let lockIcon = s.bloqueado ? '🔒' : '🔓';
+                let lockTitle = s.bloqueado ? 'Desbloquear salón' : 'Bloquear salón';
+                
+                html += `<tr class="${rowClass}">
                             <td>${s.sede}</td>
                             <td><strong>${s.id}</strong></td>
                             <td>${s.cap}</td>
                             <td>${s.sis ? 'Sí' : 'No'}</td>
                             <td>${s.p_maest ? 'Sí' : 'No'}</td>
+                            <td style="text-align: center;">
+                                <button class="btn-lock" onclick="toggleBloqueo(${index})" title="${lockTitle}">${lockIcon}</button>
+                            </td>
                          </tr>`;
             });
             html += `</tbody></table>`;
             document.getElementById('tablaSalonesDiv').innerHTML = html;
         }
+
+        // función para alternar el estado de bloqueo de un salón
+        function toggleBloqueo(index) {
+            salonesBase[index].bloqueado = !salonesBase[index].bloqueado;
+            renderizarInventario();
+            // si quieres que reasigne automáticamente al bloquear/desbloquear, descomenta la siguiente línea:
+            // ejecutarOptimizacion();
+        }
+
         renderizarInventario();
 
-        // Procesar ingreso
         function procesarIngreso() {
             const prog = document.getElementById('programaInput').value;
             const personas = parseInt(document.getElementById('personas').value);
@@ -255,7 +280,7 @@
                 Swal.fire({
                     title: 'Nombre del espacio',
                     input: 'text',
-                    inputPlaceholder: 'Ej. Conferencia internacional...',
+                    inputPlaceholder: 'Ej. conferencia internacional...',
                     showCancelButton: true,
                     confirmButtonText: 'Guardar'
                 }).then(result => {
@@ -270,16 +295,46 @@
         }
 
         function agregarALista(nombre, tipo, personas, sis, tab) {
-            clasesPendientes.push({ nombre, tipo, personas, sis, tab, asignacion: null });
+            if (indexEdicion !== null) {
+                clasesPendientes[indexEdicion] = { nombre, tipo, personas, sis, tab, asignacion: null };
+                indexEdicion = null;
+                const btn = document.getElementById('btnAgregar');
+                btn.innerText = '+ Agregar a la bandeja';
+                btn.style.backgroundColor = 'var(--primary)';
+            } else {
+                clasesPendientes.push({ nombre, tipo, personas, sis, tab, asignacion: null });
+            }
             
             document.getElementById('programaInput').value = '';
             document.getElementById('personas').value = '';
+            document.getElementById('reqSistemas').checked = false;
+            document.getElementById('reqTablero').checked = true;
             
             renderizarBandeja();
         }
 
-        // Eliminar elemento de la bandeja
+        function cargarParaEdicion(index) {
+            const clase = clasesPendientes[index];
+            document.getElementById('programaInput').value = clase.nombre;
+            document.getElementById('personas').value = clase.personas;
+            document.getElementById('reqSistemas').checked = clase.sis;
+            document.getElementById('reqTablero').checked = clase.tab;
+            
+            indexEdicion = index;
+            const btn = document.getElementById('btnAgregar');
+            btn.innerText = '💾 Guardar cambios';
+            btn.style.backgroundColor = 'var(--warning)';
+        }
+
         function eliminarDeLista(index) {
+            if (indexEdicion === index) {
+                indexEdicion = null;
+                const btn = document.getElementById('btnAgregar');
+                btn.innerText = '+ Agregar a la bandeja';
+                btn.style.backgroundColor = 'var(--primary)';
+                document.getElementById('programaInput').value = '';
+                document.getElementById('personas').value = '';
+            }
             clasesPendientes.splice(index, 1);
             renderizarBandeja();
         }
@@ -299,7 +354,10 @@
                             <div class="card-title">${clase.nombre}</div>
                             <div>${tags}</div>
                         </div>
-                        <button class="btn-delete" onclick="eliminarDeLista(${index})" title="Eliminar programa">🗑️</button>
+                        <div class="card-actions">
+                            <button class="btn-action edit" onclick="cargarParaEdicion(${index})" title="Editar programa">✏️️</button>
+                            <button class="btn-action delete" onclick="eliminarDeLista(${index})" title="Eliminar programa">🗑️</button>
+                        </div>
                     </div>`;
             });
         }
@@ -319,20 +377,19 @@
                 let mejorPuntajeZ = -99999;
 
                 salonesDisponibles.forEach(salon => {
-                    // Restricciones duras
-                    if (salon.ocupado || salon.cap < clase.personas) return;
+                    // restricción dura añadida: salta el salón si está bloqueado manualmente
+                    if (salon.ocupado || salon.bloqueado || salon.cap < clase.personas) return;
                     if (clase.sis && !salon.sis) return;
                     if (clase.tab && !salon.tab) return;
                     if (clase.tipo === "Maestria" && salon.sede === "Romelio") return; 
-                    
-                    // Nueva restricción estricta: Aurora SOLO para Especializaciones
                     if (salon.id === "Aurora" && clase.tipo !== "Especializacion") return;
+                    if (salon.id === "Auditorio Jaime Muñoz" && clase.tipo === "Maestria") return;
 
-                    // Restricciones blandas (Scoring)
                     let puntajeZ = 0;
 
                     if (clase.tipo === "Maestria") {
-                        if (salon.sede === "Prado") puntajeZ += 1000;
+                        if (salon.sede === "Prado" && salon.es_junta === 0) puntajeZ += 1500;
+                        else if (salon.es_junta === 1) puntajeZ += 1000;
                         else if (salon.id === "CINEMATECA" || salon.sede === "Cosmos") puntajeZ += 500;
                     } else if (clase.tipo === "Especializacion") {
                         if (salon.sede === "Cosmos") puntajeZ += 1000;
@@ -342,7 +399,6 @@
                         if (salon.req_apr === 1) puntajeZ += 800;
                     }
 
-                    // Penalizar desperdicio de aforo
                     puntajeZ += 100 * (1 - ((salon.cap - clase.personas) / salon.cap)); 
 
                     if (puntajeZ > mejorPuntajeZ) {
