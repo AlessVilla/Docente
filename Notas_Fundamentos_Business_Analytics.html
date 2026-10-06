@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Calificaciones y Retroalimentacion - Retail Analytics</title>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+            --primary-blue: #0284c7;
+            --primary-blue-hover: #0369a1;
+            --accent-green: #16a34a;
+            --accent-amber: #d97706;
+            --accent-red: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header-box {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            margin: 0 0 8px 0;
+            color: var(--text-main);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .activity-info {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary-blue);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+            text-align: left;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+
+        .search-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-blue);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-blue-hover);
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .result-card.active {
+            display: block;
+        }
+
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .student-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .student-id {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .grades-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .grade-item {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .grade-item.final {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .grade-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .grade-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .grade-item.final .grade-val {
+            color: var(--accent-green);
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin: 16px 0 8px 0;
+        }
+
+        .section-title.positive { color: var(--accent-green); }
+        .section-title.negative { color: var(--accent-amber); }
+
+        ul.bullets {
+            margin: 0 0 16px 0;
+            padding-left: 20px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        ul.bullets li {
+            margin-bottom: 6px;
+        }
+
+        .error-msg {
+            color: var(--accent-red);
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <div class="header-box">
+        <h1>Consulta de calificaciones de módulo: Fundamentos de Business Analytcis</h1>
+        <p class="subtitle">Análisis descriptivo y diagnóstico de la información del retail</p>
+        
+        <div class="activity-info">
+            <strong>Criterios de Evaluación:</strong> Exposición / Presentación Pitch (30%) + Análisis & Excel (70%)
+        </div>
+    </div>
+
+    <div class="search-card">
+        <div class="search-group">
+            <input type="text" id="documentInput" placeholder="Ingrese su número de cédula..." autocomplete="off">
+            <button onclick="consultarNota()">Consultar</button>
+        </div>
+        <div id="errorMsg" class="error-msg">Número de identificación no encontrado. Verifique e intente nuevamente.</div>
+    </div>
+
+    <div id="resultCard" class="result-card">
+        <div class="student-header">
+            <div>
+                <h2 class="student-name" id="studentName">NOMBRES COMPLETOS</h2>
+                <span class="student-id" id="studentId">C.C. 0000000000</span>
+            </div>
+        </div>
+
+        <div class="grades-grid">
+            <div class="grade-item">
+                <div class="grade-label">Exposición (30%)</div>
+                <div class="grade-val" id="gradeExpo">0.0</div>
+            </div>
+            <div class="grade-item">
+                <div class="grade-label">Análisis (70%)</div>
+                <div class="grade-val" id="gradeAna">0.0</div>
+            </div>
+            <div class="grade-item final">
+                <div class="grade-label">Nota final</div>
+                <div class="grade-val" id="gradeFinal">0.0</div>
+            </div>
+        </div>
+
+        <div class="section-title positive">Puntos fuertes & aciertos</div>
+        <ul class="bullets" id="positiveBullets"></ul>
+
+        <div class="section-title negative">Oportunidades de mejora</div>
+        <ul class="bullets" id="negativeBullets"></ul>
+    </div>
+
+</div>
+
+<script>
+    const database = {
+        "1140852914": {
+            nombre: "BRYAN CORREDOR MORALES",
+            expo: 4.6,
+            ana: 4.8,
+            final: 4.74,
+            positivos: [
+                "Priorización directa en los puntos evaluados.",
+                "Excelente diferenciación entre segmentos de mercado (compara general, no por detalle individual).",
+                "Criterio oportuno para mencionar qué datos son confiables y cuáles no.",
+                "Conclusiones de nivel 1A con Call to Action directo."
+            ],
+            negativos: [
+                "Faltó explicar cómo definió o dividió inicialmente cada segmento.",
+                "En el contexto comercial, era indispensable definir techos y suelos.",
+                "Evitar la discusión excesiva durante la presentación."
+            ]
+        },
+        "1045729914": {
+            nombre: "LUIS GABRIEL JAVER ROMERO",
+            expo: 4.3,
+            ana: 5.0,
+            final: 4.79,
+            positivos: [
+                "Resumen ejecutivo bien orientado a reporte de negocio.",
+                "Estrategia antipreguntas efectiva ('Normalmente pasa, esta vez no pasó por...').",
+                "Inclusión del análisis de prevención de fraude.",
+                "Acepta observaciones, sugiere soluciones y presenta mejoras al proceso.",
+                "Uso e integración idónea de la IA como asistente."
+            ],
+            negativos: [
+                "Manejo y control del tiempo asignado.",
+                "Incluyó e intentó explicar pasos obvios en la presentación.",
+                "El exceso de análisis hizo perder el impacto de lo realmente importante."
+            ]
+        },
+        "1140855125": {
+            nombre: "PADILLA POLANCO MIGUEL ANGEL",
+            expo: 4.8,
+            ana: 5.0,
+            final: 4.94,
+            positivos: [
+                "Pregunta de negocio e hipótesis sumamente claras.",
+                "Contexto ejecutivo de alto nivel; se anticipa a las dudas del directivo.",
+                "Explicación técnica con transparencia impecable.",
+                "Informe y conclusiones finales espectaculares."
+            ],
+            negativos: [
+                "Faltaron porcentajes concretos o el Coeficiente de Variación (CV) para afinar el rigor cuantitativo."
+            ]
+        },
+        "1045688432": {
+            nombre: "BREINER JAVIER MORALES ANGARITA",
+            expo: 4.5,
+            ana: 4.5,
+            final: 4.50,
+            positivos: [
+                "Delimitación clara del problema y del alcance.",
+                "Dominio y control firme de la audiencia y del espacio.",
+                "Manejo directo sin tapujos; evita caer en preguntas problemáticas.",
+                "Conclusiones concisas y bien estructuradas."
+            ],
+            negativos: [
+                "Evitar el uso de muletillas de incertidumbre como 'Yo creo que'.",
+                "No mencionó explícitamente las conclusiones dentro de las diapositivas o soporte visual."
+            ]
+        },
+        "9178761": {
+            nombre: "STIP HERNANDO PEREZ FERNANDEZ",
+            expo: 4.3,
+            ana: 4.5,
+            final: 4.44,
+            positivos: [
+                "Delimitación precisa del problema analítico.",
+                "Buen uso e interpretación de la Campana de Gauss y estacionalidad.",
+                "Traducción acertada de conceptos técnicos a lenguaje sencillo."
+            ],
+            negativos: [
+                "Sobrecarga de información enviada a la audiencia.",
+                "Faltó explicar detalladamente ciertos tecnicismos para el público no experto.",
+                "Mejorar la oratoria y mantener contacto visual constante con la audiencia."
+            ]
+        },
+        "1140862382": {
+            nombre: "OLGA LUCIA BARROS CLARO",
+            expo: 4.0,
+            ana: 4.7,
+            final: 4.49,
+            positivos: [
+                "Evidencia de un proceso de análisis con recolección de insumos adecuados."
+            ],
+            negativos: [
+                "No definió el objetivo inicial de su presentación.",
+                "Omitió el parámetro técnico del umbral del 30.",
+                "No explicó los elementos técnicos ni las gráficas empleadas (diagramas de caja/bigote, CV).",
+                "Faltó concretar la conclusión de negocio (qué acción tomar con la significancia hallada)."
+            ]
+        },
+        "1042472429": {
+            nombre: "JOSE SARMIENTO",
+            expo: 4.4,
+            ana: 4.2,
+            final: 4.26,
+            positivos: [
+                "Excelente gancho inicial para conectar con ejecutivos.",
+                "Delimitación muy específica y profunda del escenario.",
+                "Uso eficiente del tiempo; preciso en las respuestas.",
+                "Cierre con conclusión clara."
+            ],
+            negativos: [
+                "La medida o métrica elegida no generó un insight 100% claro para la toma de decisiones."
+            ]
+        }
+    };
+
+    function consultarNota() {
+        const doc = document.getElementById("documentInput").value.trim();
+        const errorMsg = document.getElementById("errorMsg");
+        const resultCard = document.getElementById("resultCard");
+
+        errorMsg.style.display = "none";
+        resultCard.classList.remove("active");
+
+        if (database[doc]) {
+            const data = database[doc];
+            
+            document.getElementById("studentName").textContent = data.nombre;
+            document.getElementById("studentId").textContent = "C.C. " + doc;
+            document.getElementById("gradeExpo").textContent = data.expo.toFixed(1);
+            document.getElementById("gradeAna").textContent = data.ana.toFixed(1);
+            document.getElementById("gradeFinal").textContent = data.final.toFixed(2);
+
+            // Cargar listas
+            const posUl = document.getElementById("positiveBullets");
+            posUl.innerHTML = "";
+            data.positivos.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                posUl.appendChild(li);
+            });
+
+            const negUl = document.getElementById("negativeBullets");
+            negUl.innerHTML = "";
+            data.negativos.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                negUl.appendChild(li);
+            });
+
+            resultCard.classList.add("active");
+        } else {
+            errorMsg.style.display = "block";
+        }
+    }
+
+    // Permitir consulta presionando la tecla Enter
+    document.getElementById("documentInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            consultarNota();
+        }
+    });
+</script>
+
+</body>
+</html>
