@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de notas - Electiva I: IA para la gestión de la calidad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6 flex flex-col items-center">
+
+    <div class="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-gray-200 mt-10">
+        <div class="mb-6 text-center border-b border-gray-100 pb-4">
+            <h1 class="text-xl text-blue-600 font-semibold mb-1">Módulo: Electiva I: IA para la gestión de la calidad</h1>
+            <h2 class="text-2xl font-bold text-gray-800">Consulta de notas y retroalimentación</h2>
+        </div>
+        
+        <p class="text-gray-500 mb-6 text-sm">
+            Ingresa tu número de cédula para ver tus calificaciones. Recuerda que la nota del entregable 1 vale el 50% de la nota final del módulo, y la 2da evaluación (presentación de machine learning) vale el otro 50%. Los bonos específicos se suman a su respectiva actividad hasta un tope de 5.0.
+        </p>
+
+        <div class="flex space-x-3 mb-6 max-w-md mx-auto">
+            <input type="text" id="cedulaInput" placeholder="Número de cédula" 
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   onkeydown="if(event.key === 'Enter') consultarNota()">
+            <button onclick="consultarNota()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md font-medium transition-colors">
+                Consultar
+            </button>
+        </div>
+
+        <div id="resultado" class="hidden">
+            <div class="border-t border-gray-100 pt-6 mt-2">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800" id="nombreEstudiante"></h3>
+                        <p class="text-sm text-gray-600 mt-1" id="estadoModulo"></p>
+                    </div>
+                    <div class="text-right bg-blue-50 p-3 rounded-lg border border-blue-100 shadow-sm">
+                        <span class="text-xs text-blue-800 font-semibold tracking-wider block mb-1">Nota final del módulo</span>
+                        <div class="flex items-end justify-end gap-2">
+                            <span class="text-2xl font-bold text-blue-700" id="notaFinalModulo"></span>
+                            <span class="text-sm text-gray-500 pb-1" id="notaExcedente"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b border-gray-200 mt-6 mb-4">
+                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button onclick="mostrarTab('entregable1')" id="tab-entregable1" class="border-blue-500 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                            Entregable 1 (50%)
+                        </button>
+                        <button onclick="mostrarTab('entregable2')" id="tab-entregable2" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                            2da evaluación ML (50%)
+                        </button>
+                        <button onclick="mostrarTab('bonos')" id="tab-bonos" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                            Desglose de bonificaciones
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- Pestaña Entregable 1 -->
+                <div id="content-entregable1" class="tab-content">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-lg font-medium text-gray-700">Entregable 1: diagnóstico y artefacto no-code</h4>
+                        <div class="text-right">
+                            <span class="bg-indigo-100 text-indigo-800 text-sm font-semibold px-3 py-1 rounded-full" id="notaEntregable1"></span>
+                            <div class="text-xs text-gray-500 mt-1" id="detalleNotaE1"></div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                            <thead class="bg-indigo-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-indigo-800 w-1/4 border-r border-gray-200">Criterio de evaluación</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-indigo-800 w-1/4 border-r border-gray-200">Ponderación y nota</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-indigo-800 w-1/2">Comentario del docente</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="tablaNotas">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pestaña Entregable 2 -->
+                <div id="content-entregable2" class="tab-content hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-lg font-medium text-gray-700">2da evaluación: presentación de machine learning</h4>
+                        <div class="text-right">
+                            <span class="bg-emerald-100 text-emerald-800 text-sm font-semibold px-3 py-1 rounded-full" id="notaEntregable2"></span>
+                            <div class="text-xs text-gray-500 mt-1" id="detalleNotaE2"></div>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-5">
+                        <h5 class="font-semibold text-emerald-800 mb-2">Comentario de retroalimentación:</h5>
+                        <p class="text-gray-700 text-sm leading-relaxed" id="comentarioEntregable2"></p>
+                    </div>
+                </div>
+
+                <!-- Pestaña Bonos -->
+                <div id="content-bonos" class="tab-content hidden">
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">Detalle de asignación de bonificaciones</h4>
+                    <p class="text-sm text-gray-500 mb-4">Los bonos se aplican directamente a la nota de la actividad correspondiente. Si la suma supera 5.0, la nota se topa en 5.0.</p>
+                    <div class="bg-yellow-50 border border-yellow-100 rounded-lg overflow-hidden">
+                        <ul class="divide-y divide-yellow-200" id="listaBonos">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="errorMsg" class="hidden text-red-500 text-sm mt-4 p-3 bg-red-50 rounded border border-red-100">
+            No se encontró un estudiante con esa cédula. Por favor verifica el número.
+        </div>
+    </div>
+
+    <script>
+        function mostrarTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            
+            const tabs = ['entregable1', 'entregable2', 'bonos'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById('tab-' + tab);
+                if (tab === tabName) {
+                    btn.className = "border-blue-500 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+                } else {
+                    btn.className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+                }
+            });
+        }
+
+        const estudiantes = {
+            "1002031837": {
+                nombre: "ALEX JUNIOR NARVAEZ SARMIENTO",
+                estado: "Módulo completado",
+                notaE1: 5.0,
+                notaE2: 4.8,
+                bonos: [
+                    { desc: "Bono innovación (Artefacto)", valor: 0.5, tipo: "E1" },
+                    { desc: "Entrega temprana E1", valor: 0.3, tipo: "E1" },
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" },
+                    { desc: "Bono módulo en general", valor: 0.1, tipo: "Modulo" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0)",
+                        comentario: "Lograr delimitar con mucha precisión el seguimiento a los pedidos despachados y definir un evento no deseado muy claro orientado a la falta de monitoreo sistemático.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Construir una arquitectura lógica muy fluida y visualmente limpia.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Hacer funcionar la aplicación en GitHub Pages de manera perfecta, reflejando una lógica de control muy sólida.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente decisión de técnica de machine learning, resalto altamente atreverse a trabajar en un arbol de decisión, hizo falta estrategias para disminuir el sesgo de uso de la IA."
+            },
+            "1129565926": {
+                nombre: "HAROLD DANIEL GALVAN DUQUE",
+                estado: "Módulo completado",
+                notaE1: 5.0,
+                notaE2: 5.0,
+                bonos: [
+                    { desc: "Bono innovación (Artefacto)", valor: 0.5, tipo: "E1" },
+                    { desc: "Entrega temprana E1", valor: 0.3, tipo: "E1" },
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" },
+                    { desc: "Doble bono actividad 2 de ML", valor: 0.1, tipo: "E2" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0)",
+                        comentario: "Delimitar con gran claridad la gestión de incidentes en dispositivos médicos y definir las afectaciones por pérdida de kits, sangre y donantes con un rigor impecable.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Construir una arquitectura secuencial coherente que refleja con precisión el flujo de contención e inspección sanitaria.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Ofrecer una experiencia de usuario muy fluida, elegante y dinámica en el dashboard de GitHub Pages.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo, resalto muy positivamente el probar la IA generativa en distintas computadoras para minimizar el sesgo."
+            },
+            "30843460": {
+                nombre: "LUDIS MARIA BOHORQUEZ NUÑEZ",
+                estado: "Módulo completado",
+                notaE1: 4.9,
+                notaE2: 4.8,
+                bonos: [
+                    { desc: "Entrega temprana E1", valor: 0.3, tipo: "E1" },
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "28.2 / 30.0 pts (4.7)",
+                        comentario: "Identificar una fricción administrativa muy real en talento humano y articular un evento no deseado impecable en torno a la demora del indicador.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Lograr un diagrama muy limpio y legible de principio a fin.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Representar una solución práctica, elegante y alineada con los puntos de control del flujo en la página de GitHub Pages.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente decisión de técnica de machine learning, resalto altamente atreverse a trabajar en un arbol de decisión, hizo falta estrategias para disminuir el sesgo de uso de la IA."
+            },
+            "1001943669": {
+                nombre: "JIMENEZ TORRES PAULA MARCELA",
+                estado: "Módulo completado",
+                notaE1: 5.0,
+                notaE2: 5.0,
+                bonos: [
+                    { desc: "Bono innovación (Artefacto)", valor: 0.5, tipo: "E1" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0)",
+                        comentario: "Realizar un trabajo excepcional al delimitar el flujo de reembolsos a clientes y definir un evento no deseado muy claro sobre las solicitudes que superan los 15 días hábiles.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Construir un esquema visual sumamente claro que evidencia los bucles de devolución y resalta adecuadamente los puntos de control operacional.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Presentar un simulador en GitHub Pages impecable, interactivo y que responde perfectamente a la lógica de control planteada en el documento.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo y condensación de información con IA, el uso de Claude ayuda muchísimo y es muy útil el comparar los distintos modelos de machine learning entre ellos con la matriz de confusión para determinar cuál es mejor."
+            },
+            "1234095240": {
+                nombre: "EDUARDO ANDRES ALVEAR MENDOZA",
+                estado: "Módulo completado",
+                notaE1: 4.025,
+                notaE2: 5.0,
+                bonos: [],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "25.0 / 30.0 pts (4.17 / 5.0)",
+                        comentario: "(Ajuste por cuantificación incompleta del $ al expresarlo solo como % de salario sin cifra financiera clara)",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "12.5 / 15.0 pts (4.17 / 5.0)",
+                        comentario: "(Ajuste por omitir la identificación visual de los puntos de control PCO)",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "43.0 / 55.0 pts (3.91 / 5.0)",
+                        comentario: "(Nivel aceptable por funcionalidad parcial y desconexión con los límites de alerta)",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo y condensación de información con IA, el uso de Claude ayuda muchísimo y es muy útil el comparar los distintos modelos de machine learning entre ellos con la matriz de confusión para determinar cuál es mejor."
+            },
+            "1140869127": {
+                nombre: "SAMUEL ALFONSO AGUDELO MENDOZA",
+                estado: "Módulo completado",
+                notaE1: 4.5,
+                notaE2: 5.0,
+                bonos: [
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" },
+                    { desc: "Bono módulo en general", valor: 0.1, tipo: "Modulo" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0 / 5.0)",
+                        comentario: "Realizar una caracterización impecable de las 23 etapas operativas y definir con total claridad el evento no deseado asociado a los retrasos interdepartamentales.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0 / 5.0)",
+                        comentario: "Construir una arquitectura visual verdaderamente madura y detallada de principio a fin.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "45.0 / 55.0 pts (4.09 / 5.0)",
+                        comentario: "(Ajuste por enlace restringido/privado bajo el criterio insuficiente de la rúbrica)",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo y condensación de información con IA, el uso de Claude ayuda muchísimo y es muy útil el comparar los distintos modelos de machine learning entre ellos con la matriz de confusión para determinar cuál es mejor."
+            },
+            "1001820303": {
+                nombre: "RIVERO PALLARES LIZ KARIME",
+                estado: "Módulo completado",
+                notaE1: 5.0,
+                notaE2: 4.8,
+                bonos: [
+                    { desc: "Bono innovación (Artefacto)", valor: 0.5, tipo: "E1" },
+                    { desc: "Entrega temprana E1", valor: 0.3, tipo: "E1" },
+                    { desc: "Bono módulo en general", valor: 0.1, tipo: "Modulo" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0)",
+                        comentario: "Realizar una delimitación muy precisa sobre la liquidación de cargas y establecer un evento no deseado muy claro orientado a las demoras por discrepancias en facturación.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Construir un diagrama secuencial muy fluido, ordenado y visualmente intuitivo.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Presentar un dashboard en GitHub Pages sobresaliente, interactivo y que responde con total precisión a los requerimientos operacionales planteados.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente decisión de técnica de machine learning, resalto altamente atreverse a trabajar en un arbol de decisión, hizo falta estrategias para disminuir el sesgo de uso de la IA."
+            },
+            "1047232124": {
+                nombre: "NEIRIS MARCELA PALLARES CARREÑO",
+                estado: "Módulo completado",
+                notaE1: 5.0,
+                notaE2: 5.0,
+                bonos: [
+                    { desc: "Bono innovación (Artefacto)", valor: 0.5, tipo: "E1" },
+                    { desc: "Entrega temprana E1", valor: 0.3, tipo: "E1" },
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "1. Diagnóstico del proceso y END",
+                        nota: "30.0 / 30.0 pts (5.0)",
+                        comentario: "Realizar una estructuración de nivel consultoría al vincular la capacidad operacional al calendario de noviembre y cuantificar la fricción del transporte público colectivo.",
+                        color: "bg-green-50"
+                    },
+                    {
+                        nombre: "2. Flujograma en Mermaid.js",
+                        nota: "15.0 / 15.0 pts (5.0)",
+                        comentario: "Construir una arquitectura de proceso muy clara y elegante que identifica con precisión los puntos de control operacional para mitigar la pérdida de horas presenciales in situ.",
+                        color: "bg-blue-50"
+                    },
+                    {
+                        nombre: "3. Artefacto no-code",
+                        nota: "55.0 / 55.0 pts (5.0)",
+                        comentario: "Ofrecer una experiencia interactiva fluida y totalmente conectada con las metas contractuales del diagnóstico en el dashboard de GitHub Pages.",
+                        color: "bg-purple-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo, resalto muy positivamente el probar la IA generativa en distintas computadoras para minimizar el sesgo."
+            },
+            "50851427": {
+                nombre: "YENI ALEXANDRA COGOLLO HERAZO",
+                estado: "Entregas pendientes",
+                notaE1: 0.0,
+                notaE2: 5.0,
+                bonos: [
+                    { desc: "Bono actividad 2 de ML", valor: 0.1, tipo: "E2" },
+                    { desc: "Doble bono actividad 2 de ML", valor: 0.1, tipo: "E2" }
+                ],
+                itemsE1: [
+                    {
+                        nombre: "Estado entregable 1",
+                        nota: "0.0 / 5.0",
+                        comentario: "No se ha realizado la entrega del primer entregable (diagnóstico, flujograma y artefacto).",
+                        color: "bg-red-50"
+                    }
+                ],
+                comentarioE2: "Excelente trabajo, resalto muy positivamente el probar la IA generativa en distintas computadoras para minimizar el sesgo."
+            }
+        };
+
+        function consultarNota() {
+            const input = document.getElementById('cedulaInput').value.trim();
+            const resultado = document.getElementById('resultado');
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (estudiantes[input]) {
+                const data = estudiantes[input];
+                
+                document.getElementById('nombreEstudiante').innerText = data.nombre;
+                document.getElementById('estadoModulo').innerText = data.estado;
+                
+                // Segregar bonos por etapa
+                let bonosE1 = data.bonos.filter(b => b.tipo === "E1").reduce((sum, b) => sum + b.valor, 0);
+                let bonosE2 = data.bonos.filter(b => b.tipo === "E2").reduce((sum, b) => sum + b.valor, 0);
+                let bonosMod = data.bonos.filter(b => b.tipo === "Modulo").reduce((sum, b) => sum + b.valor, 0);
+                
+                // Calcular notas topadas por actividad
+                let notaE1Calc = Math.min(data.notaE1 + bonosE1, 5.0);
+                let notaE2Calc = Math.min(data.notaE2 + bonosE2, 5.0);
+                
+                // Calcular nota del módulo
+                let baseFinal = (notaE1Calc * 0.5) + (notaE2Calc * 0.5);
+                let notaFinalBruta = baseFinal + bonosMod;
+                let notaFinalTop = Math.min(notaFinalBruta, 5.0).toFixed(2);
+                
+                document.getElementById('notaFinalModulo').innerText = notaFinalTop;
+                
+                if (notaFinalBruta > 5.0) {
+                    document.getElementById('notaExcedente').innerText = `(Total acumulado: ${notaFinalBruta.toFixed(2)})`;
+                } else {
+                    document.getElementById('notaExcedente').innerText = "";
+                }
+
+                // UI Entregable 1
+                document.getElementById('notaEntregable1').innerText = `Nota computada: ${notaE1Calc.toFixed(2)} / 5.0`;
+                if(bonosE1 > 0) {
+                    document.getElementById('detalleNotaE1').innerText = `(Base: ${data.notaE1.toFixed(3)} + Bonos: ${bonosE1.toFixed(2)})`;
+                } else {
+                    document.getElementById('detalleNotaE1').innerText = "";
+                }
+
+                const tablaE1 = document.getElementById('tablaNotas');
+                tablaE1.innerHTML = '';
+                data.itemsE1.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = item.color;
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900 border-r border-gray-200 border-b">${item.nombre}</td>
+                        <td class="px-6 py-4 whitespace-normal text-sm text-gray-700 border-r border-gray-200 border-b" style="text-align: center;">${item.nota}</td>
+                        <td class="px-6 py-4 whitespace-normal text-sm text-gray-700 border-b border-gray-200">${item.comentario}</td>
+                    `;
+                    tablaE1.appendChild(row);
+                });
+
+                // UI Entregable 2
+                document.getElementById('notaEntregable2').innerText = `Nota computada: ${notaE2Calc.toFixed(2)} / 5.0`;
+                if(bonosE2 > 0) {
+                    document.getElementById('detalleNotaE2').innerText = `(Base: ${data.notaE2.toFixed(2)} + Bonos: ${bonosE2.toFixed(2)})`;
+                } else {
+                    document.getElementById('detalleNotaE2').innerText = "";
+                }
+                document.getElementById('comentarioEntregable2').innerText = data.comentarioE2;
+
+                // UI Bonos Totales
+                const listaBonos = document.getElementById('listaBonos');
+                listaBonos.innerHTML = '';
+                if(data.bonos.length > 0) {
+                    data.bonos.forEach(bono => {
+                        let etiquetaTipo = "";
+                        if(bono.tipo === "E1") etiquetaTipo = "(Aplica a Entregable 1)";
+                        if(bono.tipo === "E2") etiquetaTipo = "(Aplica a Evaluación 2)";
+                        if(bono.tipo === "Modulo") etiquetaTipo = "(Aplica a Nota Final)";
+                        
+                        const li = document.createElement('li');
+                        li.className = "px-4 py-3 flex justify-between items-center text-sm";
+                        li.innerHTML = `<span class="font-medium text-yellow-800">${bono.desc} <span class="text-xs text-yellow-600 ml-1">${etiquetaTipo}</span></span> <span class="bg-yellow-200 text-yellow-800 font-bold px-2 py-1 rounded"> +${bono.valor.toFixed(2)}</span>`;
+                        listaBonos.appendChild(li);
+                    });
+                } else {
+                    listaBonos.innerHTML = `<li class="px-4 py-3 text-sm text-gray-500">No aplica bonificaciones adicionales.</li>`;
+                }
+
+                resultado.classList.remove('hidden');
+                errorMsg.classList.add('hidden');
+                mostrarTab('entregable1'); 
+            } else {
+                resultado.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
